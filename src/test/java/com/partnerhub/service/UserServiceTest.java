@@ -1,6 +1,8 @@
 package com.partnerhub.service;
 
 import com.partnerhub.domain.User;
+import com.partnerhub.dto.UserUpdateRequestDTO;
+import com.partnerhub.exception.NotFoundException;
 import com.partnerhub.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -107,5 +109,63 @@ class UserServiceTest {
         assertThat(result).isPresent();
         assertThat(result.get().getEmail()).isEqualTo("a@b.com");
         verify(userRepository).findByEmail("a@b.com");
+    }
+
+    @Test
+    void shouldUpdateUserSuccessfully() {
+        Long userId = 1L;
+        User existingUser = new User();
+        existingUser.setId(userId);
+        existingUser.setName("Old Name");
+        existingUser.setEmail("old@email.com");
+        existingUser.setPassword("hashedpassword");
+
+        UserUpdateRequestDTO dto = new UserUpdateRequestDTO();
+        dto.setName("New Name");
+        dto.setEmail("new@email.com");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByEmail(dto.getEmail())).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        User result = userService.updateUser(userId, dto);
+
+        assertThat(result.getName()).isEqualTo("New Name");
+        assertThat(result.getEmail()).isEqualTo("new@email.com");
+        verify(userRepository).save(existingUser);
+    }
+
+    @Test
+    void shouldThrowException_WhenUserNotFoundOnUpdate() {
+        Long userId = 999L;
+        UserUpdateRequestDTO dto = new UserUpdateRequestDTO();
+        dto.setName("Any");
+        dto.setEmail("any@email.com");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.updateUser(userId, dto))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("User not found");
+    }
+
+    @Test
+    void shouldThrowException_WhenEmailAlreadyExists() {
+        Long userId = 1L;
+        User existingUser = new User();
+        existingUser.setId(userId);
+        existingUser.setName("Old Name");
+        existingUser.setEmail("old@email.com");
+
+        UserUpdateRequestDTO dto = new UserUpdateRequestDTO();
+        dto.setName("New Name");
+        dto.setEmail("duplicate@email.com");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByEmail(dto.getEmail())).thenReturn(Optional.of(new User()));
+
+        assertThatThrownBy(() -> userService.updateUser(userId, dto))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Email has already been registered");
     }
 }
