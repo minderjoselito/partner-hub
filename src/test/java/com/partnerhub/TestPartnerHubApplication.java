@@ -1,4 +1,4 @@
-package com.partnerhub.partner_hub;
+package com.partnerhub;
 
 import org.springframework.boot.SpringApplication;
 

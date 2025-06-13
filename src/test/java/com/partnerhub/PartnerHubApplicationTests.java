@@ -1,4 +1,4 @@
-package com.partnerhub.partner_hub;
+package com.partnerhub;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
