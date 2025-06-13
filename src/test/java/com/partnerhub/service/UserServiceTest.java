@@ -7,7 +7,7 @@ import com.partnerhub.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,14 +18,15 @@ import static org.mockito.Mockito.*;
 class UserServiceTest {
 
     private UserRepository userRepository;
-    private BCryptPasswordEncoder passwordEncoder;
+//    private BCryptPasswordEncoder passwordEncoder;
     private UserService userService;
 
     @BeforeEach
     void setUp() {
         userRepository = mock(UserRepository.class);
-        passwordEncoder = mock(BCryptPasswordEncoder.class);
-        userService = new UserService(userRepository, passwordEncoder);
+//        passwordEncoder = mock(BCryptPasswordEncoder.class);
+//        userService = new UserService(userRepository, passwordEncoder);
+        userService = new UserService(userRepository);
     }
 
     @Test
@@ -37,13 +38,13 @@ class UserServiceTest {
                 .build();
 
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
-        when(passwordEncoder.encode(anyString())).thenReturn("hashedpass");
+//        when(passwordEncoder.encode(anyString())).thenReturn("hashedpass");
         when(userRepository.save(ArgumentMatchers.any(User.class))).thenReturn(user);
 
         User saved = userService.createUser(user);
 
         assertThat(saved).isNotNull();
-        verify(passwordEncoder).encode("plainpass");
+//        verify(passwordEncoder).encode("plainpass");
         verify(userRepository).save(user);
     }
 
