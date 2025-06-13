@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -57,5 +58,54 @@ class UserServiceTest {
         assertThatThrownBy(() -> userService.createUser(user))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Email has already been registered");
+    }
+
+    @Test
+    void shouldFindUserById() {
+        User user = new User();
+        user.setId(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+
+        Optional<User> result = userService.findById(1L);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo(1L);
+        verify(userRepository).findById(1L);
+    }
+
+    @Test
+    void shouldFindAllUsers() {
+        User user1 = new User(); user1.setId(1L);
+        User user2 = new User(); user2.setId(2L);
+
+        when(userRepository.findAll()).thenReturn(List.of(user1, user2));
+
+        List<User> result = userService.findAll();
+
+        assertThat(result).hasSize(2);
+        verify(userRepository).findAll();
+    }
+
+    @Test
+    void shouldDeleteUserById() {
+        doNothing().when(userRepository).deleteById(1L);
+
+        userService.deleteUser(1L);
+
+        verify(userRepository).deleteById(1L);
+    }
+
+    @Test
+    void shouldFindUserByEmail() {
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("a@b.com");
+        when(userRepository.findByEmail("a@b.com")).thenReturn(Optional.of(user));
+
+        Optional<User> result = userService.findByEmail("a@b.com");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getEmail()).isEqualTo("a@b.com");
+        verify(userRepository).findByEmail("a@b.com");
     }
 }
