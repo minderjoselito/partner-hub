@@ -2,24 +2,28 @@ package com.partnerhub.service;
 
 import com.partnerhub.domain.ExternalProject;
 import com.partnerhub.domain.User;
+import com.partnerhub.dto.ExternalProjectUpdateRequestDTO;
+import com.partnerhub.exception.NotFoundException;
 import com.partnerhub.repository.ExternalProjectRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 class ExternalProjectServiceTest {
 
-    private ExternalProjectRepository repository;
-    private ExternalProjectService service;
+    private ExternalProjectRepository externalProjectRepository;
+    private ExternalProjectService externalProjectService;
 
     @BeforeEach
     void setUp() {
-        repository = mock(ExternalProjectRepository.class);
-        service = new ExternalProjectService(repository);
+        externalProjectRepository = mock(ExternalProjectRepository.class);
+        externalProjectService = new ExternalProjectService(externalProjectRepository);
     }
 
     @Test
@@ -28,13 +32,13 @@ class ExternalProjectServiceTest {
         ExternalProject project = ExternalProject.builder()
                 .id("p1").name("Project 1").user(user).build();
 
-        when(repository.save(project)).thenReturn(project);
+        when(externalProjectRepository.save(project)).thenReturn(project);
 
-        ExternalProject saved = service.addProject(project);
+        ExternalProject saved = externalProjectService.addProject(project);
 
         assertThat(saved).isNotNull();
         assertThat(saved.getName()).isEqualTo("Project 1");
-        verify(repository).save(project);
+        verify(externalProjectRepository).save(project);
     }
 
     @Test
@@ -43,11 +47,43 @@ class ExternalProjectServiceTest {
         ExternalProject p1 = ExternalProject.builder().id("p1").name("X").user(user).build();
         ExternalProject p2 = ExternalProject.builder().id("p2").name("Y").user(user).build();
 
-        when(repository.findByUserId(2L)).thenReturn(List.of(p1, p2));
+        when(externalProjectRepository.findByUserId(2L)).thenReturn(List.of(p1, p2));
 
-        List<ExternalProject> projects = service.getProjectsByUserId(2L);
+        List<ExternalProject> projects = externalProjectService.getProjectsByUserId(2L);
 
         assertThat(projects).hasSize(2);
-        verify(repository).findByUserId(2L);
+        verify(externalProjectRepository).findByUserId(2L);
+    }
+
+    @Test
+    void shouldUpdateProjectSuccessfully() {
+        String projectId = "p-1";
+        ExternalProject existingProject = new ExternalProject();
+        existingProject.setId(projectId);
+        existingProject.setName("Old Project");
+
+        ExternalProjectUpdateRequestDTO dto = new ExternalProjectUpdateRequestDTO();
+        dto.setName("Updated Project");
+
+        when(externalProjectRepository.findById(projectId)).thenReturn(Optional.of(existingProject));
+        when(externalProjectRepository.save(any(ExternalProject.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        ExternalProject result = externalProjectService.updateProject(projectId, dto);
+
+        assertThat(result.getName()).isEqualTo("Updated Project");
+        verify(externalProjectRepository).save(existingProject);
+    }
+
+    @Test
+    void shouldThrowWhenProjectNotFoundOnUpdate() {
+        String projectId = "not-exist";
+        ExternalProjectUpdateRequestDTO dto = new ExternalProjectUpdateRequestDTO();
+        dto.setName("New Name");
+
+        when(externalProjectRepository.findById(projectId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> externalProjectService.updateProject(projectId, dto))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Project not found");
     }
 }

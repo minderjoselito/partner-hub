@@ -1,6 +1,8 @@
 package com.partnerhub.service;
 
 import com.partnerhub.domain.ExternalProject;
+import com.partnerhub.dto.ExternalProjectUpdateRequestDTO;
+import com.partnerhub.exception.NotFoundException;
 import com.partnerhub.repository.ExternalProjectRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,5 +26,13 @@ public class ExternalProjectService {
     @Transactional(readOnly = true)
     public List<ExternalProject> getProjectsByUserId(Long userId) {
         return externalProjectRepository.findByUserId(userId);
+    }
+
+    @Transactional
+    public ExternalProject updateProject(String projectId, ExternalProjectUpdateRequestDTO dto) {
+        ExternalProject project = externalProjectRepository.findById(projectId)
+                .orElseThrow(() -> new NotFoundException("Project not found"));
+        project.setName(dto.getName());
+        return externalProjectRepository.save(project);
     }
 }
