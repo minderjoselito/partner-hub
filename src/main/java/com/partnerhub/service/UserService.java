@@ -12,42 +12,42 @@ import java.util.Optional;
 @Service
 public class UserService {
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
     public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
-        this.repository = userRepository;
+        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
     public User createUser(User user) {
-        if (repository.findByEmail(user.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("this email has already been registered");
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("Email has already been registered");
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        return repository.save(user);
+        return userRepository.save(user);
     }
 
     @Transactional(readOnly = true)
     public Optional<User> findById(Long id) {
-        return repository.findById(id);
+        return userRepository.findById(id);
     }
 
     @Transactional(readOnly = true)
     public List<User> findAll() {
-        return repository.findAll();
+        return userRepository.findAll();
     }
 
     @Transactional
     public void deleteUser(Long id) {
-        repository.deleteById(id);
+        userRepository.deleteById(id);
     }
 
     @Transactional(readOnly = true)
     public Optional<User> findByEmail(String email) {
-        return repository.findByEmail(email);
+        return userRepository.findByEmail(email);
     }
 }

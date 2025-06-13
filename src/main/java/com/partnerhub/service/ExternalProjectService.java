@@ -10,19 +10,19 @@ import java.util.List;
 @Service
 public class ExternalProjectService {
 
-    private final ExternalProjectRepository repository;
+    private final ExternalProjectRepository externalProjectRepository;
 
     public ExternalProjectService(ExternalProjectRepository externalProjectRepository) {
-        this.repository = externalProjectRepository;
+        this.externalProjectRepository = externalProjectRepository;
     }
 
     @Transactional
     public ExternalProject addProject(ExternalProject project) {
-        return repository.save(project);
+        return externalProjectRepository.save(project);
     }
 
     @Transactional(readOnly = true)
     public List<ExternalProject> getProjectsByUserId(Long userId) {
-        return repository.findByUserId(userId);
+        return externalProjectRepository.findByUserId(userId);
     }
 }
