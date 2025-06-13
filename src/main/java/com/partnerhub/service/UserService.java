@@ -2,6 +2,7 @@ package com.partnerhub.service;
 
 import com.partnerhub.domain.User;
 import com.partnerhub.repository.UserRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,14 +13,21 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository repository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
         this.repository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Transactional
     public User createUser(User user) {
-        // TODO: check if email exists, strong password, etc...
+        if (repository.findByEmail(user.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("this email has already been registered");
+        }
+
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
         return repository.save(user);
     }
 
