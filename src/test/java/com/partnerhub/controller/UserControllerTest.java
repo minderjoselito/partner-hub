@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
 import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -109,5 +110,40 @@ class UserControllerTest {
 
         mockMvc.perform(delete("/api/users/{id}", userId))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void shouldReturnAllUsers() throws Exception {
+        User user1 = new User();
+        user1.setId(1L);
+        user1.setEmail("a@b.com");
+        user1.setName("User A");
+
+        User user2 = new User();
+        user2.setId(2L);
+        user2.setEmail("b@c.com");
+        user2.setName("User B");
+
+        when(userService.findAll()).thenReturn(List.of(user1, user2));
+
+        UserResponseDTO dto1 = new UserResponseDTO();
+        dto1.setId(1L);
+        dto1.setEmail("a@b.com");
+        dto1.setName("User A");
+
+        UserResponseDTO dto2 = new UserResponseDTO();
+        dto2.setId(2L);
+        dto2.setEmail("b@c.com");
+        dto2.setName("User B");
+
+        when(userMapper.toResponse(user1)).thenReturn(dto1);
+        when(userMapper.toResponse(user2)).thenReturn(dto2);
+
+        mockMvc.perform(get("/api/users"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1L))
+                .andExpect(jsonPath("$[0].email").value("a@b.com"))
+                .andExpect(jsonPath("$[1].id").value(2L))
+                .andExpect(jsonPath("$[1].email").value("b@c.com"));
     }
 }
