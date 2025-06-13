@@ -29,9 +29,14 @@ public class ExternalProjectService {
     }
 
     @Transactional
-    public ExternalProject updateProject(String projectId, ExternalProjectUpdateRequestDTO dto) {
+    public ExternalProject updateProject(Long userId, String projectId, ExternalProjectUpdateRequestDTO dto) {
         ExternalProject project = externalProjectRepository.findById(projectId)
                 .orElseThrow(() -> new NotFoundException("Project not found"));
+
+        if (project.getUser() == null || !project.getUser().getId().equals(userId)) {
+            throw new NotFoundException("Project does not belong to this user");
+        }
+
         project.setName(dto.getName());
         return externalProjectRepository.save(project);
     }

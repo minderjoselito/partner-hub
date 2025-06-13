@@ -2,6 +2,7 @@ package com.partnerhub.controller;
 
 import com.partnerhub.dto.ExternalProjectRequestDTO;
 import com.partnerhub.dto.ExternalProjectResponseDTO;
+import com.partnerhub.dto.ExternalProjectUpdateRequestDTO;
 import com.partnerhub.exception.NotFoundException;
 import com.partnerhub.mapper.ExternalProjectMapper;
 import com.partnerhub.service.ExternalProjectService;
@@ -73,5 +74,16 @@ public class ExternalProjectController {
                 .map(externalProjectMapper::toResponse)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/{projectId}")
+    public ResponseEntity<ExternalProjectResponseDTO> updateProject(
+            @PathVariable Long userId,
+            @PathVariable String projectId,
+            @Valid @RequestBody ExternalProjectUpdateRequestDTO dto
+    ) {
+        ExternalProject updated = externalProjectService.updateProject(userId, projectId, dto);
+        ExternalProjectResponseDTO response = externalProjectMapper.toResponse(updated);
+        return ResponseEntity.ok(response);
     }
 }
