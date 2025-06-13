@@ -2,6 +2,7 @@ package com.partnerhub.controller;
 
 import com.partnerhub.dto.UserRequestDTO;
 import com.partnerhub.dto.UserResponseDTO;
+import com.partnerhub.dto.UserUpdateRequestDTO;
 import com.partnerhub.mapper.UserMapper;
 import com.partnerhub.service.UserService;
 import com.partnerhub.domain.User;
@@ -81,5 +82,15 @@ public class UserController {
                 .map(userMapper::toResponse)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(users);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> updateUser(
+            @PathVariable Long id,
+            @Valid @RequestBody UserUpdateRequestDTO dto
+    ) {
+        User updated = userService.updateUser(id, dto);
+        UserResponseDTO response = userMapper.toResponse(updated);
+        return ResponseEntity.ok(response);
     }
 }

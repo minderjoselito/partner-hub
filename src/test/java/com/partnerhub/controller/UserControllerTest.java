@@ -2,6 +2,7 @@ package com.partnerhub.controller;
 
 import com.partnerhub.dto.UserRequestDTO;
 import com.partnerhub.dto.UserResponseDTO;
+import com.partnerhub.dto.UserUpdateRequestDTO;
 import com.partnerhub.mapper.UserMapper;
 import com.partnerhub.service.UserService;
 import com.partnerhub.domain.User;
@@ -14,10 +15,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -145,5 +148,33 @@ class UserControllerTest {
                 .andExpect(jsonPath("$[0].email").value("a@b.com"))
                 .andExpect(jsonPath("$[1].id").value(2L))
                 .andExpect(jsonPath("$[1].email").value("b@c.com"));
+    }
+
+    @Test
+    void shouldUpdateUser() throws Exception {
+        Long userId = 1L;
+        UserUpdateRequestDTO dto = new UserUpdateRequestDTO();
+        dto.setName("Updated Name");
+        dto.setEmail("updated@email.com");
+
+        User entity = new User();
+        entity.setId(userId);
+        entity.setName("Updated Name");
+        entity.setEmail("updated@email.com");
+
+        UserResponseDTO responseDTO = new UserResponseDTO();
+        responseDTO.setId(userId);
+        responseDTO.setName("Updated Name");
+        responseDTO.setEmail("updated@email.com");
+
+        when(userService.updateUser(eq(userId), any(UserUpdateRequestDTO.class))).thenReturn(entity);
+        when(userMapper.toResponse(entity)).thenReturn(responseDTO);
+
+        mockMvc.perform(put("/api/users/{id}", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Updated Name"))
+                .andExpect(jsonPath("$.email").value("updated@email.com"));
     }
 }
