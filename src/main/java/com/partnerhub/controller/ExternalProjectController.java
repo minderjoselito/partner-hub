@@ -2,6 +2,7 @@ package com.partnerhub.controller;
 
 import com.partnerhub.dto.ExternalProjectRequestDTO;
 import com.partnerhub.dto.ExternalProjectResponseDTO;
+import com.partnerhub.exception.NotFoundException;
 import com.partnerhub.mapper.ExternalProjectMapper;
 import com.partnerhub.service.ExternalProjectService;
 import com.partnerhub.domain.ExternalProject;
@@ -50,7 +51,7 @@ public class ExternalProjectController {
             @Valid @RequestBody ExternalProjectRequestDTO requestDTO
     ) {
         User user = userService.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         ExternalProject project = externalProjectMapper.toEntity(requestDTO);
         project.setUser(user);

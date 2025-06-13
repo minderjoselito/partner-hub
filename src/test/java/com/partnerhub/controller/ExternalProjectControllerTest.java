@@ -114,7 +114,7 @@ class ExternalProjectControllerTest {
     }
 
     @Test
-    void shouldReturn409WhenUserNotFound() throws Exception {
+    void shouldReturnNotFoundWhenUserDoesNotExist() throws Exception {
         Long userId = 3L;
         ExternalProjectRequestDTO requestDTO = new ExternalProjectRequestDTO();
         requestDTO.setId("notfound");
@@ -125,7 +125,7 @@ class ExternalProjectControllerTest {
         mockMvc.perform(post("/api/users/{userId}/projects", userId)
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(requestDTO)))
-                .andExpect(status().isConflict()) // TODO: .isNotFound()
+                .andExpect(status().isNotFound())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("User not found")));
     }
 }
