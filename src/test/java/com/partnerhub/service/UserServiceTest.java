@@ -31,11 +31,10 @@ class UserServiceTest {
 
     @Test
     void shouldCreateUser_WhenEmailNotExists() {
-        User user = User.builder()
-                .email("a@b.com")
-                .password("plainpass")
-                .name("Test")
-                .build();
+        User user = new User();
+        user.setEmail("a@b.com");
+        user.setPassword("plainpass");
+        user.setName("Test");
 
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
 //        when(passwordEncoder.encode(anyString())).thenReturn("hashedpass");
@@ -50,11 +49,10 @@ class UserServiceTest {
 
     @Test
     void shouldThrowException_WhenEmailExists() {
-        User user = User.builder()
-                .email("a@b.com")
-                .password("plainpass")
-                .name("Test")
-                .build();
+        User user = new User();
+        user.setEmail("a@b.com");
+        user.setPassword("plainpass");
+        user.setName("Test");
 
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
 

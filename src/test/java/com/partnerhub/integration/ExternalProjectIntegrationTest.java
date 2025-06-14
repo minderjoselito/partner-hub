@@ -33,18 +33,19 @@ class ExternalProjectIntegrationTest extends PostgresTestContainer {
 
     @BeforeEach
     void setUp() {
-        user = userRepository.save(
-                User.builder().email("a@b.com").password("password").name("TestContainerUser").build()
-        );
+        User u = new User();
+        u.setEmail("a@b.com");
+        u.setPassword("password");
+        u.setName("TestContainerUser");
+        user = userRepository.save(u);
     }
 
     @Test
     void shouldSaveAndFindProjectByUser() {
-        ExternalProject project = ExternalProject.builder()
-                .id("p1")
-                .name("Project 1")
-                .user(user)
-                .build();
+        ExternalProject project = new ExternalProject();
+        project.setId("p1");
+        project.setName("Project 1");
+        project.setUser(user);
 
         projectRepository.save(project);
 

@@ -22,11 +22,10 @@ class UserIntegrationTest extends PostgresTestContainer {
 
     @Test
     void shouldSaveAndRetrieveUser() {
-        User user = User.builder()
-                .email("a@b.com")
-                .password("password")
-                .name("TestContainerUser")
-                .build();
+        User user = new User();
+        user.setEmail("a@b.com");
+        user.setPassword("password");
+        user.setName("TestContainerUser");
 
         User saved = userRepository.save(user);
         User found = userRepository.findById(saved.getId()).orElse(null);

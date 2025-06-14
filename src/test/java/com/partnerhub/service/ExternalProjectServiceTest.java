@@ -28,9 +28,13 @@ class ExternalProjectServiceTest {
 
     @Test
     void shouldAddProject() {
-        User user = User.builder().id(1L).email("a@b.com").build();
-        ExternalProject project = ExternalProject.builder()
-                .id("p1").name("Project 1").user(user).build();
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("a@b.com");
+        ExternalProject project = new ExternalProject();
+        project.setId("p1");
+        project.setName("Project 1");
+        project.setUser(user);
 
         when(externalProjectRepository.save(project)).thenReturn(project);
 
@@ -43,9 +47,17 @@ class ExternalProjectServiceTest {
 
     @Test
     void shouldGetProjectsByUserId() {
-        User user = User.builder().id(2L).email("b@c.com").build();
-        ExternalProject p1 = ExternalProject.builder().id("p1").name("X").user(user).build();
-        ExternalProject p2 = ExternalProject.builder().id("p2").name("Y").user(user).build();
+        User user = new User();
+        user.setId(2L);
+        user.setEmail("b@c.com");
+        ExternalProject p1 = new ExternalProject();
+        p1.setId("p1");
+        p1.setName("X");
+        p1.setUser(user);
+        ExternalProject p2 = new ExternalProject();
+        p1.setId("p2");
+        p1.setName("Y");
+        p1.setUser(user);
 
         when(externalProjectRepository.findByUserId(2L)).thenReturn(List.of(p1, p2));
 
