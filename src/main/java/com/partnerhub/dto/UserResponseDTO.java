@@ -1,14 +1,28 @@
 package com.partnerhub.dto;
 
-import lombok.Data;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.time.Instant;
 
-@Data
+/**
+ * Response payload representing a user.
+ */
+@Schema(description = "Response payload representing a user.")
 public class UserResponseDTO {
+
+    @Schema(description = "Unique identifier of the user", example = "42")
     private Long id;
+
+    @Schema(description = "Email address of the user", example = "john.doe@example.com")
     private String email;
+
+    @Schema(description = "Full name of the user", example = "John Doe")
     private String name;
+
+    @Schema(description = "Date and time the user was created", example = "2024-01-15T10:00:00Z")
     private Instant createdAt;
+
+    @Schema(description = "Date and time the user was last updated", example = "2024-06-14T14:32:00Z")
     private Instant updatedAt;
 
     public Long getId() {

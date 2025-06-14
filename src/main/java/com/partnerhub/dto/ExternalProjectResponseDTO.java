@@ -1,14 +1,25 @@
 package com.partnerhub.dto;
 
-import lombok.Data;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Instant;
 
-@Data
+/**
+ * Response payload representing an external project.
+ */
+@Schema(description = "Response payload representing an external project.")
 public class ExternalProjectResponseDTO {
+
+    @Schema(description = "Unique identifier of the external project", example = "proj-001")
     private String id;
+
+    @Schema(description = "Name of the external project", example = "Partner API Integration")
     private String name;
+
+    @Schema(description = "Date and time when the project was created", example = "2024-01-15T10:00:00Z")
     private Instant createdAt;
+
+    @Schema(description = "Date and time when the project was last updated", example = "2024-06-14T14:32:00Z")
     private Instant updatedAt;
 
     public String getId() {

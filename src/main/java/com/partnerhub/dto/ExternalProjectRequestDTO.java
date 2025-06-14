@@ -1,17 +1,23 @@
 package com.partnerhub.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
 
-@Data
+/**
+ * Payload to create a new external project for a user.
+ */
+@Schema(description = "Payload to create a new external project for a user.")
 public class ExternalProjectRequestDTO {
+
     @NotBlank
     @Size(max = 200)
+    @Schema(description = "Unique identifier for the external project", example = "proj-001")
     private String id;
 
     @NotBlank
     @Size(max = 120)
+    @Schema(description = "Name of the external project", example = "Partner API Integration")
     private String name;
 
     public String getId() {
