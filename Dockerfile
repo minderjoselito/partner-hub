@@ -1,8 +1,14 @@
-FROM openjdk:21-jdk-slim
+FROM gradle:8.4.0-jdk21 AS build
+WORKDIR /app
 
-ARG JAR_FILE=build/libs/*.jar
+COPY . .
 
-VOLUME /tmp
-COPY ${JAR_FILE} app.jar
+RUN gradle clean build -x test
 
-ENTRYPOINT ["java", "-jar", "/app.jar"]
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+
+COPY --from=build /app/build/libs/partner-hub-0.0.1-SNAPSHOT.jar app.jar
+
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
