@@ -16,6 +16,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.Parameter;
 
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +29,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/users/{userId}/projects")
 @Tag(name = "External Projects", description = "Endpoints for managing user's external projects")
 public class ExternalProjectController {
+
+    private static final Logger log = LoggerFactory.getLogger(ExternalProjectController.class);
 
     private final ExternalProjectService externalProjectService;
     private final UserService userService;
@@ -57,12 +61,20 @@ public class ExternalProjectController {
             @PathVariable Long userId,
             @Valid @RequestBody ExternalProjectRequestDTO requestDTO
     ) {
+        log.info("Creating external project {} for user ID {}", requestDTO.getId(), userId);
+
         User user = userService.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> {
+                    log.warn("User not found with ID: {}", userId);
+                    return new NotFoundException("User not found");
+                });
 
         ExternalProject project = externalProjectMapper.toEntity(requestDTO);
         project.setUser(user);
         ExternalProject saved = externalProjectService.addProject(project);
+
+        log.info("External project {} created for user ID {}", saved.getId(), userId);
+
         ExternalProjectResponseDTO responseDTO = externalProjectMapper.toResponse(saved);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
@@ -79,10 +91,14 @@ public class ExternalProjectController {
             @Parameter(description = "ID of the user", example = "1")
             @PathVariable Long userId
     ) {
+        log.info("Fetching all external projects for user ID: {}", userId);
         List<ExternalProject> projects = externalProjectService.getProjectsByUserId(userId);
+        log.info("Found {} external projects for user ID {}", projects.size(), userId);
+
         List<ExternalProjectResponseDTO> result = projects.stream()
                 .map(externalProjectMapper::toResponse)
                 .collect(Collectors.toList());
+
         return ResponseEntity.ok(result);
     }
 
@@ -105,7 +121,12 @@ public class ExternalProjectController {
 
             @Valid @RequestBody ExternalProjectUpdateRequestDTO dto
     ) {
+        log.info("Updating project {} for user ID {}", projectId, userId);
+
         ExternalProject updated = externalProjectService.updateProject(userId, projectId, dto);
+
+        log.info("Project {} updated for user ID {}", projectId, userId);
+
         ExternalProjectResponseDTO response = externalProjectMapper.toResponse(updated);
         return ResponseEntity.ok(response);
     }

@@ -12,6 +12,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/users")
 @Tag(name = "Users", description = "Endpoints for managing users")
 public class UserController {
+
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     private final UserService userService;
     private final UserMapper userMapper;
@@ -44,9 +48,11 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> createUser(
             @Valid @RequestBody UserRequestDTO requestDTO
     ) {
+        log.info("Creating user with email: {}", requestDTO.getEmail());
         User user = userMapper.toEntity(requestDTO);
         User createdUser = userService.createUser(user);
         UserResponseDTO responseDTO = userMapper.toResponse(createdUser);
+        log.info("User created with ID: {}", responseDTO.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
@@ -63,10 +69,16 @@ public class UserController {
             @Parameter(description = "ID of the user to retrieve", example = "1")
             @PathVariable Long id
     ) {
+        log.info("Fetching user with ID: {}", id);
         return userService.findById(id)
-                .map(userMapper::toResponse)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .map(user -> {
+                    log.info("User found: {}", user.getEmail());
+                    return ResponseEntity.ok(userMapper.toResponse(user));
+                })
+                .orElseGet(() -> {
+                    log.warn("User not found with ID: {}", id);
+                    return ResponseEntity.notFound().build();
+                });
     }
 
     @DeleteMapping("/{id}")
@@ -82,7 +94,9 @@ public class UserController {
             @Parameter(description = "ID of the user to delete", example = "1")
             @PathVariable Long id
     ) {
+        log.info("Deleting user with ID: {}", id);
         userService.deleteUser(id);
+        log.info("User with ID {} deleted", id);
         return ResponseEntity.noContent().build();
     }
 
@@ -95,10 +109,12 @@ public class UserController {
             }
     )
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
+        log.info("Fetching all users");
         List<UserResponseDTO> users = userService.findAll()
                 .stream()
                 .map(userMapper::toResponse)
                 .collect(Collectors.toList());
+        log.info("Retrieved {} users", users.size());
         return ResponseEntity.ok(users);
     }
 
@@ -117,8 +133,10 @@ public class UserController {
             @PathVariable Long id,
             @Valid @RequestBody UserUpdateRequestDTO dto
     ) {
+        log.info("Updating user ID: {} with new email: {}", id, dto.getEmail());
         User updated = userService.updateUser(id, dto);
         UserResponseDTO response = userMapper.toResponse(updated);
+        log.info("User with ID {} updated", id);
         return ResponseEntity.ok(response);
     }
 }

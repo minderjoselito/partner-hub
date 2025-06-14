@@ -5,6 +5,8 @@ import com.partnerhub.dto.UserUpdateRequestDTO;
 import com.partnerhub.exception.NotFoundException;
 import com.partnerhub.repository.UserRepository;
 //import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +16,8 @@ import java.util.Optional;
 @Service
 public class UserService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
+
     private final UserRepository userRepository;
 //    private final BCryptPasswordEncoder passwordEncoder;
 
@@ -21,53 +25,74 @@ public class UserService {
 //        this.userRepository = userRepository;
 //        this.passwordEncoder = passwordEncoder;
 //    }
+
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     @Transactional
     public User createUser(User user) {
+        log.info("Attempting to create user with email: {}", user.getEmail());
+
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            log.warn("Email {} is already registered", user.getEmail());
             throw new IllegalArgumentException("Email has already been registered");
         }
 
 //        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        log.info("User created with ID: {}", savedUser.getId());
+        return savedUser;
     }
 
     @Transactional(readOnly = true)
     public Optional<User> findById(Long id) {
+        log.info("Looking for user with ID: {}", id);
         return userRepository.findById(id);
     }
 
     @Transactional(readOnly = true)
     public List<User> findAll() {
+        log.info("Retrieving all users");
         return userRepository.findAll();
     }
 
     @Transactional
     public void deleteUser(Long id) {
+        log.info("Deleting user with ID: {}", id);
         userRepository.deleteById(id);
     }
 
     @Transactional(readOnly = true)
     public Optional<User> findByEmail(String email) {
+        log.info("Searching for user with email: {}", email);
         return userRepository.findByEmail(email);
     }
 
     @Transactional
     public User updateUser(Long id, UserUpdateRequestDTO dto) {
+        log.info("Updating user with ID: {}", id);
+
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+                .orElseThrow(() -> {
+                    log.warn("User not found with ID: {}", id);
+                    return new NotFoundException("User not found");
+                });
 
         if (!user.getEmail().equals(dto.getEmail())) {
             userRepository.findByEmail(dto.getEmail())
-                    .ifPresent(u -> { throw new IllegalArgumentException("Email has already been registered"); });
+                    .ifPresent(u -> {
+                        log.warn("Email {} is already registered to another user", dto.getEmail());
+                        throw new IllegalArgumentException("Email has already been registered");
+                    });
         }
 
         user.setName(dto.getName());
         user.setEmail(dto.getEmail());
-        return userRepository.save(user);
+
+        User updatedUser = userRepository.save(user);
+        log.info("User with ID: {} updated successfully", updatedUser.getId());
+        return updatedUser;
     }
 }
