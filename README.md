@@ -58,6 +58,8 @@ Backend API built with Spring Boot 3.5 and Java 21 for managing users and their 
   - Average response time per URI (latency)
   - JVM heap memory usage (MB)
   - Total live threads in the application
+  - Errors by endpoint (4xx and 5xx)
+  - Success rate (% of requests with status 2xx)
 - [x] Docker Compose with PostgreSQL, Prometheus and Grafana  
 
 ---
