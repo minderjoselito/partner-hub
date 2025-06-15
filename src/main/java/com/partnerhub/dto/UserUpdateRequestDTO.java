@@ -11,14 +11,24 @@ import jakarta.validation.constraints.Size;
 @Schema(description = "Payload to update a user's profile information.")
 public class UserUpdateRequestDTO {
 
-    @NotBlank
-    @Email
-    @Schema(description = "Updated email address", example = "new.email@example.com")
+    @NotBlank(message = "Email must not be blank")
+    @Email(message = "Email must be valid")
+    @Schema(
+            description = "Updated email address",
+            example = "new.email@example.com",
+            maxLength = 200,
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private String email;
 
-    @NotBlank
-    @Size(max = 120)
-    @Schema(description = "Updated full name", example = "New Name")
+    @NotBlank(message = "Name must not be blank")
+    @Size(max = 120, message = "Name must be at most 120 characters")
+    @Schema(
+            description = "Updated full name",
+            example = "New Name",
+            maxLength = 120,
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private String name;
 
     public String getEmail() {

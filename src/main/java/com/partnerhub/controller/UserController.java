@@ -1,13 +1,14 @@
 package com.partnerhub.controller;
 
-import com.partnerhub.dto.UserRequestDTO;
-import com.partnerhub.dto.UserResponseDTO;
-import com.partnerhub.dto.UserUpdateRequestDTO;
+import com.partnerhub.dto.*;
 import com.partnerhub.mapper.UserMapper;
 import com.partnerhub.service.UserService;
 import com.partnerhub.domain.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -41,8 +42,39 @@ public class UserController {
             summary = "Create a new user",
             description = "Creates a user using the provided email, password, and name",
             responses = {
-                    @ApiResponse(responseCode = "201", description = "User successfully created"),
-                    @ApiResponse(responseCode = "400", description = "Invalid input data")
+                    @ApiResponse(
+                            responseCode = "201",
+                            description = "User successfully created",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = UserResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            value = "{ \"id\": 42, \"email\": \"john.doe@example.com\", \"name\": \"John Doe\", \"createdAt\": \"2024-01-15T10:00:00Z\", \"updatedAt\": \"2024-06-14T14:32:00Z\" }"
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid input data",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            value = "{ \"timestamp\": \"2025-06-15T17:02:00.000+00:00\", \"status\": 400, \"errors\": [ { \"field\": \"email\", \"message\": \"Email must be valid\", \"rejectedValue\": \"invalid\" } ], \"path\": \"/api/users\" }"
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            value = "{ \"timestamp\": \"2025-06-15T17:02:00.000+00:00\", \"status\": 401, \"error\": \"Unauthorized\", \"message\": \"Full authentication is required to access this resource\", \"path\": \"/api/users\" }"
+                                    )
+                            )
+                    )
             }
     )
     public ResponseEntity<UserResponseDTO> createUser(
@@ -61,8 +93,39 @@ public class UserController {
             summary = "Get user by ID",
             description = "Returns the user that matches the given ID",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "User found"),
-                    @ApiResponse(responseCode = "404", description = "User not found")
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "User found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = UserResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            value = "{ \"id\": 42, \"email\": \"john.doe@example.com\", \"name\": \"John Doe\", \"createdAt\": \"2024-01-15T10:00:00Z\", \"updatedAt\": \"2024-06-14T14:32:00Z\" }"
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "User not found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            value = "{ \"timestamp\": \"2025-06-15T17:02:00.000+00:00\", \"status\": 404, \"error\": \"Not Found\", \"message\": \"User with ID 42 not found\", \"path\": \"/api/users/42\" }"
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            value = "{ \"timestamp\": \"2025-06-15T17:02:00.000+00:00\", \"status\": 401, \"error\": \"Unauthorized\", \"message\": \"Full authentication is required to access this resource\", \"path\": \"/api/users/42\" }"
+                                    )
+                            )
+                    )
             }
     )
     public ResponseEntity<UserResponseDTO> getUserById(
@@ -77,6 +140,7 @@ public class UserController {
                 })
                 .orElseGet(() -> {
                     log.warn("User not found with ID: {}", id);
+                    // Aqui você pode retornar um erro padronizado, se preferir
                     return ResponseEntity.notFound().build();
                 });
     }
@@ -87,7 +151,28 @@ public class UserController {
             description = "Deletes the user associated with the given ID",
             responses = {
                     @ApiResponse(responseCode = "204", description = "User deleted"),
-                    @ApiResponse(responseCode = "404", description = "User not found")
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "User not found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            value = "{ \"timestamp\": \"2025-06-15T17:02:00.000+00:00\", \"status\": 404, \"error\": \"Not Found\", \"message\": \"User with ID 42 not found\", \"path\": \"/api/users/42\" }"
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            value = "{ \"timestamp\": \"2025-06-15T17:02:00.000+00:00\", \"status\": 401, \"error\": \"Unauthorized\", \"message\": \"Full authentication is required to access this resource\", \"path\": \"/api/users/42\" }"
+                                    )
+                            )
+                    )
             }
     )
     public ResponseEntity<Void> deleteUser(
@@ -105,7 +190,25 @@ public class UserController {
             summary = "Get all users",
             description = "Returns a list of all registered users",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Users retrieved")
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Users retrieved",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = UserResponseDTO.class)
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            value = "{ \"timestamp\": \"2025-06-15T17:02:00.000+00:00\", \"status\": 401, \"error\": \"Unauthorized\", \"message\": \"Full authentication is required to access this resource\", \"path\": \"/api/users\" }"
+                                    )
+                            )
+                    )
             }
     )
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
@@ -121,11 +224,52 @@ public class UserController {
     @PutMapping("/{id}")
     @Operation(
             summary = "Update user by ID",
-            description = "Updates a user's name or password using the provided data",
+            description = "Updates a user's name or email using the provided data",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "User updated successfully"),
-                    @ApiResponse(responseCode = "400", description = "Invalid input data"),
-                    @ApiResponse(responseCode = "404", description = "User not found")
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "User updated successfully",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = UserResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            value = "{ \"id\": 42, \"email\": \"john.doe@example.com\", \"name\": \"John Doe\", \"createdAt\": \"2024-01-15T10:00:00Z\", \"updatedAt\": \"2024-06-14T14:32:00Z\" }"
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "Invalid input data",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            value = "{ \"timestamp\": \"2025-06-15T17:02:00.000+00:00\", \"status\": 400, \"errors\": [ { \"field\": \"name\", \"message\": \"Name must not be blank\", \"rejectedValue\": \"\" } ], \"path\": \"/api/users/42\" }"
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "User not found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            value = "{ \"timestamp\": \"2025-06-15T17:02:00.000+00:00\", \"status\": 404, \"error\": \"Not Found\", \"message\": \"User with ID 42 not found\", \"path\": \"/api/users/42\" }"
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "Unauthorized",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponseDTO.class),
+                                    examples = @ExampleObject(
+                                            value = "{ \"timestamp\": \"2025-06-15T17:02:00.000+00:00\", \"status\": 401, \"error\": \"Unauthorized\", \"message\": \"Full authentication is required to access this resource\", \"path\": \"/api/users/42\" }"
+                                    )
+                            )
+                    )
             }
     )
     public ResponseEntity<UserResponseDTO> updateUser(

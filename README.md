@@ -37,6 +37,7 @@ Backend API built with Spring Boot 3.5 and Java 21 for managing users and their 
 - [x] Configure metrics
 - [x] Configure docker compose with database and service and all necessary ports to be tested
 - [x] <span style="color:#2ea44f">Grafana dashboard</span>
+- [x] <span style="color:#2ea44f">Validations</span>
 
 ---
 
