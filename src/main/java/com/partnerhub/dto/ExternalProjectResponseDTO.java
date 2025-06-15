@@ -10,16 +10,36 @@ import java.time.Instant;
 @Schema(description = "Response payload representing an external project.")
 public class ExternalProjectResponseDTO {
 
-    @Schema(description = "Unique identifier of the external project", example = "proj-001")
+    @Schema(
+            description = "Unique identifier of the external project",
+            example = "proj-001",
+            requiredMode = Schema.RequiredMode.REQUIRED,
+            maxLength = 200
+    )
     private String id;
 
-    @Schema(description = "Name of the external project", example = "Partner API Integration")
+    @Schema(
+            description = "Name of the external project",
+            example = "Partner API Integration",
+            requiredMode = Schema.RequiredMode.REQUIRED,
+            maxLength = 120
+    )
     private String name;
 
-    @Schema(description = "Date and time when the project was created", example = "2024-01-15T10:00:00Z")
+    @Schema(
+            description = "Date and time when the project was created",
+            example = "2024-01-15T10:00:00Z",
+            type = "string",
+            format = "date-time"
+    )
     private Instant createdAt;
 
-    @Schema(description = "Date and time when the project was last updated", example = "2024-06-14T14:32:00Z")
+    @Schema(
+            description = "Date and time when the project was last updated",
+            example = "2024-06-14T14:32:00Z",
+            type = "string",
+            format = "date-time"
+    )
     private Instant updatedAt;
 
     public String getId() {

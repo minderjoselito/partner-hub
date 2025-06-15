@@ -10,14 +10,24 @@ import jakarta.validation.constraints.Size;
 @Schema(description = "Payload to create a new external project for a user.")
 public class ExternalProjectRequestDTO {
 
-    @NotBlank
-    @Size(max = 200)
-    @Schema(description = "Unique identifier for the external project", example = "proj-001")
+    @NotBlank(message = "Project ID must not be blank")
+    @Size(max = 200, message = "Project ID must be at most 200 characters")
+    @Schema(
+            description = "Unique identifier for the external project",
+            example = "proj-001",
+            maxLength = 200,
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private String id;
 
-    @NotBlank
-    @Size(max = 120)
-    @Schema(description = "Name of the external project", example = "Partner API Integration")
+    @NotBlank(message = "Project name must not be blank")
+    @Size(max = 120, message = "Project name must be at most 120 characters")
+    @Schema(
+            description = "Name of the external project",
+            example = "Partner API Integration",
+            maxLength = 120,
+            requiredMode = Schema.RequiredMode.REQUIRED
+    )
     private String name;
 
     public String getId() {
