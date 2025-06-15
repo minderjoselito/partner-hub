@@ -67,8 +67,8 @@ Backend API built with Spring Boot 3.5 and Java 21 for managing users and their 
 
 ## 📚 API Documentation
 
-- 📖 Swagger UI: http://localhost:8080/swagger-ui.html  
-- 📄 OpenAPI JSON: http://localhost:8080/v3/api-docs  
+- 📖 Swagger UI: http://localhost:8081  
+- 📄 OpenAPI YAML: http://localhost:8081/openapi.yaml  
 
 ---
 

@@ -49,6 +49,16 @@ services:
     depends_on:
       - prometheus
 
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: swagger-ui
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./docs/openapi.yaml:/openapi.yaml:ro
+    environment:
+      SWAGGER_JSON: /openapi.yaml
+
 volumes:
   pgdata:
   grafana-storage:
