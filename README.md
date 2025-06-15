@@ -138,35 +138,13 @@ Grafana dashboard auto-import available on first run.
 
 ## 🧾 ER Model
 
-```
-@startuml
+<p align="center">
+  <img src="docs/erm.svg" alt="ER Diagram" width="500"/>
+</p>
+<p align="center">
+  <a href="docs/erm.plantuml">PlantUML source code</a>
+</p>
 
-entity "tb_user" as user {
-*id : BIGINT <<PK>>
---
-name : VARCHAR(120)
-email : VARCHAR(200) <<UQ>>
-password : VARCHAR(129)
-enabled : BOOLEAN
-created_at : TIMESTAMP
-updated_at : TIMESTAMP
-}
-
-entity "tb_user_external_project" as project {
-*id : VARCHAR(200) <<PK>>
-*user_id : BIGINT <<PK, FK>>
---
-name : VARCHAR(120)
-description : TEXT
-url : VARCHAR(255)
-created_at : TIMESTAMP
-updated_at : TIMESTAMP
-}
-
-user ||--o{ project : has
-
-@enduml
-```
 
 ```sql
 CREATE TABLE tb_user (
