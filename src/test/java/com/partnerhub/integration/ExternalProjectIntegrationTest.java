@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest
-@Tag("integration")
 class ExternalProjectIntegrationTest extends PostgresTestContainer {
 
     @Autowired
