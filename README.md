@@ -178,13 +178,12 @@ CREATE TABLE tb_user_external_project (
 
 ---
 
-## 🛠 Developer Notes
+## 🛠 Load testing with k6
 
-- Codebase follows SOLID principles
-- Swagger annotations on all DTOs and Controllers  
-- DTOs use Java Bean-style (no Lombok)
-- Logs are contextual and production-ready
-- Metrics and healthchecks integrated for production monitoring
+```bash
+cd load-testing
+docker-compose -f docker-compose.k6.yml up
+```
 
 ---
 

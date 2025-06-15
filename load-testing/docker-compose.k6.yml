@@ -1,0 +1,8 @@
+version: '3.8'
+services:
+  k6:
+    image: grafana/k6:latest
+    volumes:
+      - .:/scripts
+    entrypoint: ["k6", "run", "/scripts/loadtest.js"]
+    network_mode: "host"
