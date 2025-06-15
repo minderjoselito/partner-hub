@@ -10,7 +10,7 @@ import java.time.Instant;
 import java.util.Set;
 
 @Entity
-@Table(name = "users")
+@Table(name = "tb_user")
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {

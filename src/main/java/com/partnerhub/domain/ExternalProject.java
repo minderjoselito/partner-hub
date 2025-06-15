@@ -8,7 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.Instant;
 
 @Entity
-@Table(name = "external_projects")
+@Table(name = "tb_user_external_project")
 @NoArgsConstructor
 @AllArgsConstructor
 public class ExternalProject {
