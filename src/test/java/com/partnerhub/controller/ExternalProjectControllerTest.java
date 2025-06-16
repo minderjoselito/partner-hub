@@ -240,30 +240,6 @@ class ExternalProjectControllerTest {
     }
 
     @Test
-    void updateProject_WhenProjectNotExists_ShouldReturn404() throws Exception {
-        // Given
-        Long userId = 1L;
-        String projectId = "non-existent";
-        ExternalProjectUpdateRequestDTO updateDTO = new ExternalProjectUpdateRequestDTO();
-        updateDTO.setName("Some Name");
-
-        when(externalProjectService.updateProject(eq(userId), eq(projectId), any(ExternalProjectUpdateRequestDTO.class)))
-                .thenThrow(new NotFoundException("Project with ID non-existent or user with ID 1 not found"));
-
-        // When & Then
-        mockMvc.perform(put("/api/users/{userId}/projects/{projectId}", userId, projectId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateDTO)))
-                .andExpect(status().isNotFound())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.timestamp").exists())
-                .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.error").value("Not Found"))
-                .andExpect(jsonPath("$.message").value("Project with ID non-existent or user with ID 1 not found"))
-                .andExpect(jsonPath("$.path").value("/api/users/1/projects/non-existent"));
-    }
-
-    @Test
     void updateProject_WhenInvalidData_ShouldReturn400() throws Exception {
         // Given
         Long userId = 1L;
@@ -279,6 +255,66 @@ class ExternalProjectControllerTest {
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.errors").isArray());
+    }
+
+    @Test
+    void updateProject_WhenUserDoesNotExist_ShouldReturn404() throws Exception {
+        // Given
+        Long userId = 1000L;
+        String projectId = "my-prj";
+        ExternalProjectUpdateRequestDTO updateDTO = new ExternalProjectUpdateRequestDTO();
+        updateDTO.setName("any");
+
+        when(externalProjectService.updateProject(eq(userId), eq(projectId), any(ExternalProjectUpdateRequestDTO.class)))
+                .thenThrow(new NotFoundException("User with ID 1000 not found"));
+
+        // When & Then
+        mockMvc.perform(put("/api/users/{userId}/projects/{projectId}", userId, projectId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDTO)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("User with ID 1000 not found"));
+    }
+
+    @Test
+    void updateProject_WhenProjectDoesNotExist_ShouldReturn404() throws Exception {
+        // Given
+        Long userId = 1L;
+        String projectId = "notfound";
+        ExternalProjectUpdateRequestDTO updateDTO = new ExternalProjectUpdateRequestDTO();
+        updateDTO.setName("any");
+
+        when(externalProjectService.updateProject(eq(userId), eq(projectId), any(ExternalProjectUpdateRequestDTO.class)))
+                .thenThrow(new NotFoundException("Project with ID notfound not found"));
+
+        // When & Then
+        mockMvc.perform(put("/api/users/{userId}/projects/{projectId}", userId, projectId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDTO)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("Project with ID notfound not found"));
+    }
+
+    @Test
+    void updateProject_WhenProjectDoesNotBelongToUser_ShouldReturn404() throws Exception {
+        // Given
+        Long userId = 10L;
+        String projectId = "prj-x";
+        ExternalProjectUpdateRequestDTO updateDTO = new ExternalProjectUpdateRequestDTO();
+        updateDTO.setName("other");
+
+        when(externalProjectService.updateProject(eq(userId), eq(projectId), any(ExternalProjectUpdateRequestDTO.class)))
+                .thenThrow(new NotFoundException("Project with ID prj-x does not belong to user with ID 10"));
+
+        // When & Then
+        mockMvc.perform(put("/api/users/{userId}/projects/{projectId}", userId, projectId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDTO)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.message").value("Project with ID prj-x does not belong to user with ID 10"));
     }
 
     // ===============================

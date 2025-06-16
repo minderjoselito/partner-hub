@@ -146,13 +146,83 @@ class ExternalProjectServiceTest {
     // ===============================
 
     @Test
-    void updateProject_WhenValidDataAndProjectBelongsToUser_ShouldReturnUpdatedProject() {
-        Long userId = 1L;
-        String projectId = "p-1";
+    void updateProject_WhenUserDoesNotExist_ShouldThrowNotFoundException() {
+        // Given
+        Long userId = 1000L;
+        String projectId = "px";
+        ExternalProjectUpdateRequestDTO dto = new ExternalProjectUpdateRequestDTO();
+        dto.setName("New Name");
 
+        when(userService.findById(userId)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> externalProjectService.updateProject(userId, projectId, dto))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("User with ID 1000 not found");
+
+        verify(userService).findById(userId);
+        verifyNoMoreInteractions(userService, externalProjectRepository);
+    }
+
+    @Test
+    void updateProject_WhenProjectDoesNotExist_ShouldThrowNotFoundException() {
+        // Given
+        Long userId = 11L;
+        String projectId = "does-not-exist";
         User user = new User();
         user.setId(userId);
+        ExternalProjectUpdateRequestDTO dto = new ExternalProjectUpdateRequestDTO();
+        dto.setName("Project");
 
+        when(userService.findById(userId)).thenReturn(Optional.of(user));
+        when(externalProjectRepository.findById(projectId)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> externalProjectService.updateProject(userId, projectId, dto))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Project with ID does-not-exist not found");
+
+        verify(userService).findById(userId);
+        verify(externalProjectRepository).findById(projectId);
+    }
+
+    @Test
+    void updateProject_WhenProjectDoesNotBelongToUser_ShouldThrowNotFoundException() {
+        // Given
+        Long userId = 123L;
+        String projectId = "p-1";
+        User user = new User();
+        user.setId(userId);
+        User anotherUser = new User();
+        anotherUser.setId(999L);
+
+        ExternalProject existingProject = new ExternalProject();
+        existingProject.setId(projectId);
+        existingProject.setName("Project");
+        existingProject.setUser(anotherUser);
+
+        ExternalProjectUpdateRequestDTO dto = new ExternalProjectUpdateRequestDTO();
+        dto.setName("Updated Name");
+
+        when(userService.findById(userId)).thenReturn(Optional.of(user));
+        when(externalProjectRepository.findById(projectId)).thenReturn(Optional.of(existingProject));
+
+        // When & Then
+        assertThatThrownBy(() -> externalProjectService.updateProject(userId, projectId, dto))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("Project with ID p-1 does not belong to user with ID 123");
+
+        verify(userService).findById(userId);
+        verify(externalProjectRepository).findById(projectId);
+        verify(externalProjectRepository, never()).save(any());
+    }
+
+    @Test
+    void updateProject_WhenValidDataAndProjectBelongsToUser_ShouldReturnUpdatedProject() {
+        // Given
+        Long userId = 1L;
+        String projectId = "p-1";
+        User user = new User(); user.setId(userId);
         ExternalProject project = new ExternalProject();
         project.setId(projectId);
         project.setName("Old Name");
@@ -161,55 +231,18 @@ class ExternalProjectServiceTest {
         ExternalProjectUpdateRequestDTO dto = new ExternalProjectUpdateRequestDTO();
         dto.setName("New Project Name");
 
+        when(userService.findById(userId)).thenReturn(Optional.of(user));
         when(externalProjectRepository.findById(projectId)).thenReturn(Optional.of(project));
         when(externalProjectRepository.save(any(ExternalProject.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ExternalProject result = externalProjectService.updateProject(userId, projectId, dto);
+        // When
+        ExternalProject updated = externalProjectService.updateProject(userId, projectId, dto);
 
-        assertThat(result.getName()).isEqualTo("New Project Name");
-        assertThat(result.getUser()).isEqualTo(user);
+        // Then
+        assertThat(updated.getName()).isEqualTo("New Project Name");
+        assertThat(updated.getUser()).isEqualTo(user);
+        verify(userService).findById(userId);
         verify(externalProjectRepository).findById(projectId);
         verify(externalProjectRepository).save(project);
-    }
-
-    @Test
-    void updateProject_WhenProjectNotFound_ShouldThrowNotFoundException() {
-        Long userId = 1L;
-        String projectId = "not-exist";
-        ExternalProjectUpdateRequestDTO dto = new ExternalProjectUpdateRequestDTO();
-        dto.setName("New Name");
-
-        when(externalProjectRepository.findById(projectId)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> externalProjectService.updateProject(userId, projectId, dto))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessageContaining("Project with ID not-exist not found");
-
-        verify(externalProjectRepository).findById(projectId);
-        verify(externalProjectRepository, never()).save(any());
-    }
-
-    @Test
-    void updateProject_WhenProjectDoesNotBelongToUser_ShouldThrowNotFoundException() {
-        Long userId = 123L;
-        String projectId = "p-1";
-        ExternalProject existingProject = new ExternalProject();
-        existingProject.setId(projectId);
-        existingProject.setName("Project");
-        User otherUser = new User();
-        otherUser.setId(999L);
-        existingProject.setUser(otherUser);
-
-        ExternalProjectUpdateRequestDTO dto = new ExternalProjectUpdateRequestDTO();
-        dto.setName("Updated");
-
-        when(externalProjectRepository.findById(projectId)).thenReturn(Optional.of(existingProject));
-
-        assertThatThrownBy(() -> externalProjectService.updateProject(userId, projectId, dto))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessageContaining("does not belong to user with ID 123");
-
-        verify(externalProjectRepository).findById(projectId);
-        verify(externalProjectRepository, never()).save(any());
     }
 }

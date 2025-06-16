@@ -65,19 +65,22 @@ public class ExternalProjectService {
     public ExternalProject updateProject(Long userId, String projectId, ExternalProjectUpdateRequestDTO dto) {
         log.info("Attempting to update project ID {} for user ID {}", projectId, userId);
 
+        // Check user existence first
+        User user = userService.findById(userId)
+                .orElseThrow(() -> {
+                    log.warn("User with ID {} not found", userId);
+                    return new NotFoundException(String.format("User with ID %d not found", userId));
+                });
+
         ExternalProject project = externalProjectRepository.findById(projectId)
                 .orElseThrow(() -> {
                     log.warn("Project not found with ID {}", projectId);
-                    return new NotFoundException(
-                            String.format("Project with ID %s not found", projectId)
-                    );
+                    return new NotFoundException(String.format("Project with ID %s not found", projectId));
                 });
 
         if (project.getUser() == null || !project.getUser().getId().equals(userId)) {
             log.warn("Project {} does not belong to user ID {}", projectId, userId);
-            throw new NotFoundException(
-                    String.format("Project with ID %s does not belong to user with ID %d", projectId, userId)
-            );
+            throw new NotFoundException(String.format("Project with ID %s does not belong to user with ID %d", projectId, userId));
         }
 
         project.setName(dto.getName());
