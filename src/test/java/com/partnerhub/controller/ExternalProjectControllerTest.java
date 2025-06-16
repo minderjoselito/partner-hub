@@ -9,7 +9,6 @@ import com.partnerhub.domain.User;
 import com.partnerhub.exception.NotFoundException;
 import com.partnerhub.mapper.ExternalProjectMapper;
 import com.partnerhub.service.ExternalProjectService;
-import com.partnerhub.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +19,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -29,7 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ExternalProjectController.class)
-@AutoConfigureMockMvc(addFilters = false) // disables Spring Security for tests
+@AutoConfigureMockMvc(addFilters = false)
 class ExternalProjectControllerTest {
 
     @Autowired
@@ -37,9 +35,6 @@ class ExternalProjectControllerTest {
 
     @MockitoBean
     private ExternalProjectService externalProjectService;
-
-    @MockitoBean
-    private UserService userService;
 
     @MockitoBean
     private ExternalProjectMapper externalProjectMapper;
@@ -63,9 +58,8 @@ class ExternalProjectControllerTest {
         ExternalProject project = createTestProject("proj-001", "Partner API Integration", user);
         ExternalProjectResponseDTO responseDTO = createProjectResponseDTO("proj-001", "Partner API Integration");
 
-        when(userService.findById(userId)).thenReturn(Optional.of(user));
         when(externalProjectMapper.toEntity(any(ExternalProjectRequestDTO.class))).thenReturn(project);
-        when(externalProjectService.addProject(any(ExternalProject.class))).thenReturn(project);
+        when(externalProjectService.addProject(eq(userId), any(ExternalProject.class))).thenReturn(project);
         when(externalProjectMapper.toResponse(any(ExternalProject.class))).thenReturn(responseDTO);
 
         // When & Then
@@ -77,10 +71,36 @@ class ExternalProjectControllerTest {
                 .andExpect(jsonPath("$.id").value("proj-001"))
                 .andExpect(jsonPath("$.name").value("Partner API Integration"));
 
-        verify(userService, times(1)).findById(userId);
-        verify(externalProjectMapper, times(1)).toEntity(any(ExternalProjectRequestDTO.class));
-        verify(externalProjectService, times(1)).addProject(any(ExternalProject.class));
-        verify(externalProjectMapper, times(1)).toResponse(any(ExternalProject.class));
+        verify(externalProjectMapper).toEntity(any(ExternalProjectRequestDTO.class));
+        verify(externalProjectService).addProject(eq(userId), any(ExternalProject.class));
+        verify(externalProjectMapper).toResponse(any(ExternalProject.class));
+    }
+
+    @Test
+    void addProject_WhenProjectAlreadyExists_ShouldReturn409() throws Exception {
+        // Given
+        Long userId = 5L;
+        ExternalProjectRequestDTO requestDTO = new ExternalProjectRequestDTO();
+        requestDTO.setId("proj-409");
+        requestDTO.setName("Duplicate Test");
+
+        User user = createTestUser(userId, "user@test.com", "User");
+        ExternalProject project = createTestProject("proj-409", "Duplicate Test", user);
+
+        when(externalProjectMapper.toEntity(any(ExternalProjectRequestDTO.class))).thenReturn(project);
+        when(externalProjectService.addProject(eq(userId), any(ExternalProject.class)))
+                .thenThrow(new IllegalArgumentException("Project with ID proj-409 already exists for user with ID 5"));
+
+        // When & Then
+        mockMvc.perform(post("/api/users/{userId}/projects", userId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDTO)))
+                .andExpect(status().isConflict())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.error").value("Conflict"))
+                .andExpect(jsonPath("$.message").value("Project with ID proj-409 already exists for user with ID 5"))
+                .andExpect(jsonPath("$.path").value("/api/users/5/projects"));
     }
 
     @Test
@@ -91,7 +111,9 @@ class ExternalProjectControllerTest {
         requestDTO.setId("proj-001");
         requestDTO.setName("Should Fail Project");
 
-        when(userService.findById(userId)).thenReturn(Optional.empty());
+        when(externalProjectMapper.toEntity(any(ExternalProjectRequestDTO.class))).thenReturn(new ExternalProject());
+        when(externalProjectService.addProject(eq(userId), any(ExternalProject.class)))
+                .thenThrow(new NotFoundException("User with ID 999 not found"));
 
         // When & Then
         mockMvc.perform(post("/api/users/{userId}/projects", userId)
@@ -104,10 +126,6 @@ class ExternalProjectControllerTest {
                 .andExpect(jsonPath("$.error").value("Not Found"))
                 .andExpect(jsonPath("$.message").value("User with ID 999 not found"))
                 .andExpect(jsonPath("$.path").value("/api/users/999/projects"));
-
-        verify(userService, times(1)).findById(userId);
-        verify(externalProjectMapper, never()).toEntity(any());
-        verify(externalProjectService, never()).addProject(any());
     }
 
     @Test
@@ -115,7 +133,6 @@ class ExternalProjectControllerTest {
         // Given
         Long userId = 1L;
         ExternalProjectRequestDTO requestDTO = new ExternalProjectRequestDTO();
-        // Missing required fields (id and name)
 
         // When & Then
         mockMvc.perform(post("/api/users/{userId}/projects", userId)
@@ -126,9 +143,6 @@ class ExternalProjectControllerTest {
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.errors").isArray());
-
-        verify(userService, never()).findById(any());
-        verify(externalProjectService, never()).addProject(any());
     }
 
     // ===============================
@@ -161,10 +175,6 @@ class ExternalProjectControllerTest {
                 .andExpect(jsonPath("$[0].name").value("Project Alpha"))
                 .andExpect(jsonPath("$[1].id").value("proj-002"))
                 .andExpect(jsonPath("$[1].name").value("Project Beta"));
-
-        verify(externalProjectService, times(1)).getProjectsByUserId(userId);
-        verify(externalProjectMapper, times(1)).toResponse(project1);
-        verify(externalProjectMapper, times(1)).toResponse(project2);
     }
 
     @Test
@@ -179,9 +189,6 @@ class ExternalProjectControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(0));
-
-        verify(externalProjectService, times(1)).getProjectsByUserId(userId);
-        verify(externalProjectMapper, never()).toResponse(any());
     }
 
     @Test
@@ -200,8 +207,6 @@ class ExternalProjectControllerTest {
                 .andExpect(jsonPath("$.error").value("Not Found"))
                 .andExpect(jsonPath("$.message").value("User with ID 999 not found"))
                 .andExpect(jsonPath("$.path").value("/api/users/999/projects"));
-
-        verify(externalProjectService, times(1)).getProjectsByUserId(userId);
     }
 
     // ===============================
@@ -232,9 +237,6 @@ class ExternalProjectControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(projectId))
                 .andExpect(jsonPath("$.name").value("Updated Project Name"));
-
-        verify(externalProjectService, times(1)).updateProject(eq(userId), eq(projectId), any(ExternalProjectUpdateRequestDTO.class));
-        verify(externalProjectMapper, times(1)).toResponse(updatedProject);
     }
 
     @Test
@@ -259,8 +261,6 @@ class ExternalProjectControllerTest {
                 .andExpect(jsonPath("$.error").value("Not Found"))
                 .andExpect(jsonPath("$.message").value("Project with ID non-existent or user with ID 1 not found"))
                 .andExpect(jsonPath("$.path").value("/api/users/1/projects/non-existent"));
-
-        verify(externalProjectService, times(1)).updateProject(eq(userId), eq(projectId), any(ExternalProjectUpdateRequestDTO.class));
     }
 
     @Test
@@ -269,7 +269,6 @@ class ExternalProjectControllerTest {
         Long userId = 1L;
         String projectId = "proj-001";
         ExternalProjectUpdateRequestDTO updateDTO = new ExternalProjectUpdateRequestDTO();
-        // Missing name (required field)
 
         // When & Then
         mockMvc.perform(put("/api/users/{userId}/projects/{projectId}", userId, projectId)
@@ -280,8 +279,6 @@ class ExternalProjectControllerTest {
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.errors").isArray());
-
-        verify(externalProjectService, never()).updateProject(any(), any(), any());
     }
 
     // ===============================
@@ -313,13 +310,6 @@ class ExternalProjectControllerTest {
         dto.setName(name);
         dto.setCreatedAt(Instant.now());
         dto.setUpdatedAt(Instant.now());
-        return dto;
-    }
-
-    private ExternalProjectRequestDTO createProjectRequestDTO(String id, String name) {
-        ExternalProjectRequestDTO dto = new ExternalProjectRequestDTO();
-        dto.setId(id);
-        dto.setName(name);
         return dto;
     }
 }

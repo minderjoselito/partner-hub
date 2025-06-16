@@ -461,6 +461,18 @@ paths:
                 error: Not Found
                 message: User with ID 1 not found
                 path: /api/users/1/projects
+        "409":
+          description: Project already exists for this user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+              example:
+                timestamp: 2025-06-16T20:10:00.000+00:00
+                status: 409
+                error: Conflict
+                message: Project with ID proj-001 already exists for user with ID 1
+                path: /api/users/1/projects
   /thread/name:
     get:
       tags:
