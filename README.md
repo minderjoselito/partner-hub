@@ -61,14 +61,7 @@ Backend API built with Spring Boot 3.5 and Java 21 for managing users and their 
   - Total live threads in the application
   - Errors by endpoint (4xx and 5xx)
   - Success rate (% of requests with status 2xx)
-- [x] Docker Compose with PostgreSQL, Prometheus and Grafana  
-
----
-
-## 📚 API Documentation
-
-- 📖 Swagger UI: http://localhost:8081  
-- 📄 OpenAPI YAML: http://localhost:8081/openapi.yaml  
+- [x] Docker Compose with PostgreSQL, Prometheus and Grafana
 
 ---
 
@@ -85,6 +78,13 @@ Backend API built with Spring Boot 3.5 and Java 21 for managing users and their 
 docker-compose up -d --build
 ```
 
+### 📡 Access the services
+
+- 📦 API: http://localhost:8080
+- 📖 Swagger UI: http://localhost:8081
+- 📊 Grafana dashboard: http://localhost:3000 (default: user admin / password admin)
+- 📈 Prometheus: http://localhost:9090
+
 ### Run tests
 
 ```bash
@@ -98,17 +98,18 @@ docker-compose up -d --build
 open build/reports/jacoco/test/html/index.html
 ```
 
-### 📡 Access the services
-
-- 📦 API: http://localhost:8080
-- 📊 Grafana dashboard: http://localhost:3000 (default: user admin / password admin)
-- 📈 Prometheus: http://localhost:9090
-
 ### Stop everything
 
 ```bash
 docker-compose down # use -v to remove volumes 
 ```
+
+---
+
+## 📚 API Documentation
+
+- 📖 Swagger UI: http://localhost:8081
+- 📄 OpenAPI YAML: http://localhost:8081/openapi.yaml
 
 ---
 
@@ -181,8 +182,7 @@ CREATE TABLE tb_user_external_project (
 ## 🛠 Load testing with k6
 
 ```bash
-cd load-testing
-docker-compose -f docker-compose.k6.yml up
+docker-compose -f load-testing/docker-compose.k6.yml up
 ```
 
 ---
