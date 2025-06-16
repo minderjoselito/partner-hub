@@ -82,9 +82,7 @@ public class ExternalProjectController {
     @PutMapping("/{projectId}")
     public ResponseEntity<ExternalProjectResponseDTO> updateProject(
             @PathVariable Long userId,
-
             @PathVariable String projectId,
-
             @Valid @RequestBody ExternalProjectUpdateRequestDTO dto
     ) {
         log.info("Updating project {} for user ID {}", projectId, userId);
