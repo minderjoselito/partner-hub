@@ -47,9 +47,13 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<User> findById(Long id) {
+    public User findById(Long id) {
         log.info("Looking for user with ID: {}", id);
-        return userRepository.findById(id);
+        return userRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("User with ID {} not found", id);
+                    return new NotFoundException(String.format("User with ID %d not found", id));
+                });
     }
 
     @Transactional(readOnly = true)

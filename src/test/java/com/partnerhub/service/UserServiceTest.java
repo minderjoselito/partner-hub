@@ -90,26 +90,26 @@ class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         // When
-        Optional<User> result = userService.findById(userId);
+        User result = userService.findById(userId);
 
         // Then
-        assertThat(result).isPresent();
-        assertThat(result.get().getId()).isEqualTo(userId);
-        assertThat(result.get().getEmail()).isEqualTo("test@example.com");
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(userId);
+        assertThat(result.getEmail()).isEqualTo("test@example.com");
         verify(userRepository).findById(userId);
     }
 
     @Test
-    void findById_WhenUserNotExists_ShouldReturnEmpty() {
+    void findById_WhenUserNotExists_ShouldThrowNotFoundException() {
         // Given
         Long userId = 999L;
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        // When
-        Optional<User> result = userService.findById(userId);
+        // When & Then
+        assertThatThrownBy(() -> userService.findById(userId))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessageContaining("User with ID 999 not found");
 
-        // Then
-        assertThat(result).isEmpty();
         verify(userRepository).findById(userId);
     }
 
@@ -217,7 +217,7 @@ class UserServiceTest {
         // When & Then
         assertThatThrownBy(() -> userService.updateUser(userId, dto))
                 .isInstanceOf(NotFoundException.class)
-                .hasMessageContaining("User not found");
+                .hasMessageContaining("User with ID 999 not found");
 
         verify(userRepository).findById(userId);
         verify(userRepository, never()).findByEmail(any());

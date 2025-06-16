@@ -22,7 +22,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.List;
-import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(UserController.class)
@@ -96,7 +95,7 @@ class UserControllerTest {
         responseDTO.setEmail(entity.getEmail());
         responseDTO.setName(entity.getName());
 
-        when(userService.findById(userId)).thenReturn(Optional.of(entity));
+        when(userService.findById(userId)).thenReturn(entity);
         when(userMapper.toResponse(entity)).thenReturn(responseDTO);
 
         // When & Then
@@ -111,11 +110,17 @@ class UserControllerTest {
     void getUserById_WhenUserNotExists_ShouldReturn404() throws Exception {
         // Given
         long userId = 999L;
-        when(userService.findById(userId)).thenReturn(Optional.empty());
+        when(userService.findById(userId)).thenThrow(new NotFoundException("User with ID 999 not found"));
 
         // When & Then
         mockMvc.perform(get("/api/users/{id}", userId))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.timestamp").exists())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.error").value("Not Found"))
+                .andExpect(jsonPath("$.message").value("User with ID 999 not found"))
+                .andExpect(jsonPath("$.path").value("/api/users/999"));
     }
 
     @Test

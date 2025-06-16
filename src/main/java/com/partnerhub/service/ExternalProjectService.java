@@ -5,7 +5,6 @@ import com.partnerhub.domain.User;
 import com.partnerhub.dto.ExternalProjectUpdateRequestDTO;
 import com.partnerhub.exception.NotFoundException;
 import com.partnerhub.repository.ExternalProjectRepository;
-import com.partnerhub.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -31,11 +30,7 @@ public class ExternalProjectService {
     public ExternalProject addProject(Long userId, ExternalProject project) {
         log.info("Attempting to add external project with ID {} for user ID {}", project.getId(), userId);
 
-        User user = userService.findById(userId)
-                .orElseThrow(() -> {
-                    log.warn("User with ID {} not found", userId);
-                    return new NotFoundException(String.format("User with ID %d not found", userId));
-                });
+        User user = userService.findById(userId);
         project.setUser(user);
 
         Optional<ExternalProject> existing = externalProjectRepository.findById(project.getId());
@@ -65,12 +60,7 @@ public class ExternalProjectService {
     public ExternalProject updateProject(Long userId, String projectId, ExternalProjectUpdateRequestDTO dto) {
         log.info("Attempting to update project ID {} for user ID {}", projectId, userId);
 
-        // Check user existence first
-        User user = userService.findById(userId)
-                .orElseThrow(() -> {
-                    log.warn("User with ID {} not found", userId);
-                    return new NotFoundException(String.format("User with ID %d not found", userId));
-                });
+        User user = userService.findById(userId);
 
         ExternalProject project = externalProjectRepository.findById(projectId)
                 .orElseThrow(() -> {

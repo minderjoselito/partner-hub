@@ -46,19 +46,9 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> getUserById(
-            @PathVariable Long id
-    ) {
-        log.info("Fetching user with ID: {}", id);
-        return userService.findById(id)
-                .map(user -> {
-                    log.info("User found: {}", user.getEmail());
-                    return ResponseEntity.ok(userMapper.toResponse(user));
-                })
-                .orElseGet(() -> {
-                    log.warn("User with ID {} not found", id);
-                    return ResponseEntity.notFound().build();
-                });
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id) {
+        User user = userService.findById(id);
+        return ResponseEntity.ok(userMapper.toResponse(user));
     }
 
     @DeleteMapping("/{id}")
