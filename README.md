@@ -65,6 +65,7 @@ Backend API built with Spring Boot 3.5 and Java 21 for managing users and their 
 - [x] Grafana dashboard
 - [x] Validations
 - [x] Production environment configuration
+- [x] Database migrations with Flyway
 
 ---
 
@@ -90,6 +91,7 @@ Backend API built with Spring Boot 3.5 and Java 21 for managing users and their 
   - Success rate (% of requests with status 2xx)
 - [x] Docker Compose with PostgreSQL, Prometheus and Grafana
 - [x] Environment separation (DEV/PROD) with proper configuration
+- [x] Database migrations with Flyway for production deployments
 
 ---
 
@@ -264,6 +266,38 @@ CREATE TABLE tb_user_external_project (
 
 ---
 
+## 🗄️ Database Migrations
+
+Production-ready database versioning with Flyway:
+
+### Features
+- ✅ **Version control** for database schema
+- ✅ **Automated migrations** on application startup
+- ✅ **Rollback support** and migration history
+- ✅ **Environment separation** (DEV uses ddl-auto, PROD uses migrations)
+
+### Migration Files
+
+- [V1__Create_initial_tables.sql](src/main/resources/db/migration/V1__Create_initial_tables.sql)
+- [V2__Add_indexes.sql](src/main/resources/db/migration/V2__Add_indexes.sql)
+
+### Configuration
+
+- **Development**: Uses `spring.jpa.hibernate.ddl-auto=update` for convenience
+- **Production**: Uses Flyway migrations for controlled schema evolution
+
+### Adding New Migrations
+
+#### Create new migration file
+
+```bash
+touch src/main/resources/db/migration/V3__Update_user_columns.sql
+```
+
+Flyway will automatically apply on next startup.
+
+---
+
 ## 🛠 Cleanup
 
 ### Stop development
@@ -281,7 +315,9 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
 ### Remove volumes (clean slate)
 
 ```bash
-docker-compose down -v
+docker-compose down -v # development
+# or
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml down -v # production
 ```
 
 ---
