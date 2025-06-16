@@ -2,6 +2,32 @@
 
 Backend API built with Spring Boot 3.5 and Java 21 for managing users and their external projects.
 
+## 📚 Table of Contents
+
+- [🚀 Tech Stack](#-tech-stack)
+- [📋 Requirements](#-requirements)
+  - [Minimal requirements](#-minimal-requirements)
+  - [Optional extras](#-optional-extras)
+- [📦 Features](#-features)
+- [🌍 Environments](#-environments)
+  - [Development (Default)](#️-development-default)
+  - [Production](#-production)
+- [🐳 Running locally](#-running-locally)
+  - [Requirements](#requirements)
+  - [Development Environment](#development-environment-default)
+  - [Production Environment](#production-environment)
+- [📡 Service Access](#-service-access)
+  - [Development Environment](#development-environment)
+  - [Production Environment](#production-environment-1)
+- [🔐 Authentication](#-authentication)
+  - [Development Credentials](#development-credentials)
+  - [Production Credentials](#production-credentials)
+- [🧪 Testing](#-testing)
+- [📊 Observability](#-observability)
+- [🧾 ER Model](#-er-model)
+- [🛠 Cleanup](#-cleanup)
+- [📄 License](#-license)
+
 ---
 
 ## 🚀 Tech Stack
@@ -12,7 +38,7 @@ Backend API built with Spring Boot 3.5 and Java 21 for managing users and their 
 - MapStruct for DTO mapping
 - JUnit 5 for unit/integration testing
 - Docker + Docker Compose + Testcontainers
-- Micrometer + Prometheus + Grafana  
+- Micrometer + Prometheus + Grafana
 - Logback + JSON structured logs
 
 ---
@@ -36,8 +62,9 @@ Backend API built with Spring Boot 3.5 and Java 21 for managing users and their 
 - [x] Configure logs
 - [x] Configure metrics
 - [x] Configure docker compose with database and service and all necessary ports to be tested
-- [x] <span style="color:#2ea44f">Grafana dashboard</span>
-- [x] <span style="color:#2ea44f">Validations</span>
+- [x] Grafana dashboard
+- [x] Validations
+- [x] Production environment configuration
 
 ---
 
@@ -48,8 +75,8 @@ Backend API built with Spring Boot 3.5 and Java 21 for managing users and their 
 - [x] Retrieve user information (`GET /api/users/{id}`)
 - [x] Delete a user (`DELETE /api/users/{id}`)
 - [x] Update a user (`PUT /api/users/{id}`)
-- [x] Add external project to user (`POST /api/users/{id}/projects`)  
-- [x] Retrieve external projects from a user (`GET /api/users/{id}/projects`)   
+- [x] Add external project to user (`POST /api/users/{id}/projects`)
+- [x] Retrieve external projects from a user (`GET /api/users/{id}/projects`)
 - [x] Unit & integration tests
 - [x] Dockerized application
 - [x] JSON-structured logging with Logback
@@ -62,6 +89,27 @@ Backend API built with Spring Boot 3.5 and Java 21 for managing users and their 
   - Errors by endpoint (4xx and 5xx)
   - Success rate (% of requests with status 2xx)
 - [x] Docker Compose with PostgreSQL, Prometheus and Grafana
+- [x] Environment separation (DEV/PROD) with proper configuration
+
+---
+
+## 🌍 Environments
+
+This project supports separate development and production environments:
+
+### 🛠️ Development (Default)
+- **Easy setup**: Just `docker-compose up`
+- **Hardcoded credentials**: Safe dummy values
+- **All ports exposed**: Easy debugging and testing
+- **Permissive CORS**: Frontend development friendly
+- **Verbose logging**: Debug information available
+
+### 🚀 Production
+- **Environment variables**: Secure credential management
+- **Restricted access**: Minimal port exposure
+- **Secure CORS**: Only allowed domains
+- **Optimized logging**: Essential information only
+- **Health monitoring**: Production-ready observability
 
 ---
 
@@ -70,20 +118,80 @@ Backend API built with Spring Boot 3.5 and Java 21 for managing users and their 
 ### Requirements
 
 - Java 21
-- Docker & Docker Compose  
+- Docker & Docker Compose
 
-### Start the project
+### Development Environment (Default)
 
+#### Start development environment
 ```bash
 docker-compose up -d --build
 ```
 
-### 📡 Access the services
+### Production Environment
 
-- 📦 API: http://localhost:8080
-- 📖 Swagger UI: http://localhost:8081
-- 📊 Grafana dashboard: http://localhost:3000 (default: user admin / password admin)
-- 📈 Prometheus: http://localhost:9090
+#### 1. Setup environment variables
+
+```bash
+cp .env.example .env
+# Edit .env with your production values
+```
+
+#### 2. Build production image
+
+```bash
+docker build -t partnerhub:latest .
+```
+
+#### 3. Start production environment
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env up -d
+```
+
+> 📖 **For detailed production setup**, see [PRODUCTION.md](PRODUCTION.md)
+
+---
+
+## 📡 Service Access
+
+### Development Environment
+- 📦 **API**: http://localhost:8080
+- 📖 **Swagger UI**: http://localhost:8081
+- 📊 **Grafana**: http://localhost:3000 (admin/admin)
+- 📈 **Prometheus**: http://localhost:9090
+- 🗄️ **PostgreSQL**: localhost:5432 (dev_user/dev_pass)
+
+### Production Environment
+- 📦 **API**: http://localhost:8080
+- 📊 **Grafana**: http://localhost:3000 (admin/your_password)
+- 📈 **Prometheus**: http://localhost:9090
+- 📖 **Swagger UI**: Not exposed (security)
+- 🗄️ **PostgreSQL**: Not exposed (security)
+
+---
+
+## 🔐 Authentication
+
+All endpoints are protected with Basic Auth.
+
+### Development Credentials
+
+```
+username: admin
+password: admin
+```
+
+### Production Credentials
+
+```
+Configure in `.env` file:
+ADMIN_USER=admin
+ADMIN_PASS=your_secure_password_here
+```
+
+---
+
+## 🧪 Testing
 
 ### Run tests
 
@@ -98,33 +206,11 @@ docker-compose up -d --build
 open build/reports/jacoco/test/html/index.html
 ```
 
-### Stop everything
+### Load testing with k6
 
 ```bash
-docker-compose down # use -v to remove volumes 
+docker-compose -f load-testing/docker-compose.k6.yml up
 ```
-
----
-
-## 📚 API Documentation
-
-- 📖 Swagger UI: http://localhost:8081
-- 📄 OpenAPI YAML: http://localhost:8081/openapi.yaml
-
----
-
-## 🔐 Authentication
-
-All endpoints are protected with Basic Auth.
-
-**Default credentials:**
-
-```
-username: admin
-password: admin
-```
-
-You can configure your own via `application.properties`.
 
 ---
 
@@ -134,7 +220,7 @@ The application is fully observable:
 
 - `/actuator/health` – health checks
 - `/actuator/metrics` – Prometheus metrics
-- Logs: structured JSON via LogstashEncoder (works with Loki)  
+- Logs: structured JSON via LogstashEncoder (works with Loki)
 
 Grafana dashboard auto-import available on first run.
 
@@ -148,7 +234,6 @@ Grafana dashboard auto-import available on first run.
 <p align="center">
   <a href="docs/erm.plantuml">PlantUML source code</a>
 </p>
-
 
 ```sql
 CREATE TABLE tb_user (
@@ -179,10 +264,24 @@ CREATE TABLE tb_user_external_project (
 
 ---
 
-## 🛠 Load testing with k6
+## 🛠 Cleanup
+
+### Stop development
 
 ```bash
-docker-compose -f load-testing/docker-compose.k6.yml up
+docker-compose down
+```
+
+### Stop production
+
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
+```
+
+### Remove volumes (clean slate)
+
+```bash
+docker-compose down -v
 ```
 
 ---

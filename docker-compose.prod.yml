@@ -1,0 +1,69 @@
+version: '3.8'
+services:
+  postgres:
+    container_name: partnerhub-db-prod
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME:-partnerhub_prod}
+    # Don't expose port in production for security reasons
+    restart: unless-stopped
+    networks:
+      - partnerhub-network
+
+  app:
+    container_name: partnerhub-app-prod
+    image: partnerhub:latest
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-partnerhub_prod}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASS}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_PROFILES_ACTIVE: prod
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASS: ${ADMIN_PASS}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+    restart: unless-stopped
+    networks:
+      - partnerhub-network
+
+  prometheus:
+    container_name: prometheus-prod
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data-prod:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=200h'
+    restart: unless-stopped
+    networks:
+      - partnerhub-network
+
+  grafana:
+    container_name: grafana-prod
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin123}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana-storage-prod:/var/lib/grafana
+    restart: unless-stopped
+    networks:
+      - partnerhub-network
+
+  swagger-ui:
+    container_name: swagger-ui-prod
+    ports: [] # Remove port exposure in production
+    restart: unless-stopped
+    networks:
+      - partnerhub-network
+
+networks:
+  partnerhub-network:
+    driver: bridge
+
+volumes:
+  pgdata:
+    name: pgdata_prod
+  grafana-storage-prod:
+  prometheus-data-prod:
