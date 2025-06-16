@@ -1,6 +1,7 @@
 package com.partnerhub.controller;
 
 import com.partnerhub.dto.*;
+import com.partnerhub.exception.NotFoundException;
 import com.partnerhub.mapper.UserMapper;
 import com.partnerhub.service.UserService;
 import com.partnerhub.domain.User;
@@ -61,9 +62,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(
-            @PathVariable Long id
-    ) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         log.info("Deleting user with ID: {}", id);
         userService.deleteUser(id);
         log.info("User with ID {} deleted", id);

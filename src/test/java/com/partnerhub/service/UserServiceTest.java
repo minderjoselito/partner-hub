@@ -7,25 +7,22 @@ import com.partnerhub.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
-//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class UserServiceTest {
 
     private UserRepository userRepository;
-//    private BCryptPasswordEncoder passwordEncoder;
     private UserService userService;
 
     @BeforeEach
     void setUp() {
         userRepository = mock(UserRepository.class);
-//        passwordEncoder = mock(BCryptPasswordEncoder.class);
-//        userService = new UserService(userRepository, passwordEncoder);
         userService = new UserService(userRepository);
     }
 
@@ -37,13 +34,11 @@ class UserServiceTest {
         user.setName("Test");
 
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
-//        when(passwordEncoder.encode(anyString())).thenReturn("hashedpass");
         when(userRepository.save(ArgumentMatchers.any(User.class))).thenReturn(user);
 
         User saved = userService.createUser(user);
 
         assertThat(saved).isNotNull();
-//        verify(passwordEncoder).encode("plainpass");
         verify(userRepository).save(user);
     }
 
@@ -85,15 +80,6 @@ class UserServiceTest {
 
         assertThat(result).hasSize(2);
         verify(userRepository).findAll();
-    }
-
-    @Test
-    void shouldDeleteUserById() {
-        doNothing().when(userRepository).deleteById(1L);
-
-        userService.deleteUser(1L);
-
-        verify(userRepository).deleteById(1L);
     }
 
     @Test
@@ -166,5 +152,31 @@ class UserServiceTest {
         assertThatThrownBy(() -> userService.updateUser(userId, dto))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Email has already been registered");
+    }
+
+    @Test
+    void shouldDeleteUserSuccessfully() {
+        Long userId = 1L;
+        when(userRepository.existsById(userId)).thenReturn(true);
+
+        userService.deleteUser(userId);
+
+        verify(userRepository, times(1)).existsById(userId);
+        verify(userRepository, times(1)).deleteById(userId);
+    }
+
+    @Test
+    void shouldThrowNotFoundException_WhenTryToDeleteUserNotExists() {
+        Long userId = 999L;
+        when(userRepository.existsById(userId)).thenReturn(false);
+
+        NotFoundException exception = assertThrows(
+                NotFoundException.class,
+                () -> userService.deleteUser(userId)
+        );
+
+        assertThat(exception.getMessage()).isEqualTo("User with ID 999 not found");
+        verify(userRepository, times(1)).existsById(userId);
+        verify(userRepository, never()).deleteById(any());
     }
 }

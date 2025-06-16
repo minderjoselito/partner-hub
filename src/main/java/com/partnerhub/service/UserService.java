@@ -60,8 +60,13 @@ public class UserService {
 
     @Transactional
     public void deleteUser(Long id) {
-        log.info("Deleting user with ID: {}", id);
+        if (!userRepository.existsById(id)) {
+            log.warn("User not found with ID: {}", id);
+            throw new NotFoundException("User with ID " + id + " not found");
+        }
+
         userRepository.deleteById(id);
+        log.info("User with ID {} successfully deleted", id);
     }
 
     @Transactional(readOnly = true)
