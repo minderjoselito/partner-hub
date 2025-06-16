@@ -4,43 +4,46 @@ import com.partnerhub.domain.ExternalProject;
 import com.partnerhub.domain.User;
 import com.partnerhub.repository.ExternalProjectRepository;
 import com.partnerhub.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Testcontainers
 @SpringBootTest
-class ExternalProjectIntegrationTest extends PostgresTestContainer {
+class AllIntegrationTest extends PostgresTestContainer {
 
     @Autowired
     private UserRepository userRepository;
+
     @Autowired
     private ExternalProjectRepository projectRepository;
 
-    private User user;
+    @Test
+    void shouldSaveAndRetrieveUser() {
+        User user = new User();
+        user.setEmail("a@b.com");
+        user.setPassword("password");
+        user.setName("TestContainerUser");
 
-    @BeforeEach
-    void setUp() {
-        User u = new User();
-        u.setEmail("a@b.com");
-        u.setPassword("password");
-        u.setName("TestContainerUser");
-        user = userRepository.save(u);
+        User saved = userRepository.save(user);
+        User found = userRepository.findById(saved.getId()).orElse(null);
+
+        assertThat(found).isNotNull();
+        assertThat(found.getEmail()).isEqualTo("a@b.com");
     }
 
     @Test
     void shouldSaveAndFindProjectByUser() {
+        User user = new User();
+        user.setEmail("b@c.com");
+        user.setPassword("password");
+        user.setName("TestContainerUser2");
+
+        user = userRepository.save(user);
+
         ExternalProject project = new ExternalProject();
         project.setId("p1");
         project.setName("Project 1");
@@ -52,4 +55,6 @@ class ExternalProjectIntegrationTest extends PostgresTestContainer {
         assertThat(projects).hasSize(1);
         assertThat(projects.get(0).getName()).isEqualTo("Project 1");
     }
+
 }
+

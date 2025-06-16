@@ -216,6 +216,65 @@ docker-compose -f load-testing/docker-compose.k6.yml up
 
 ---
 
+## 🛠️ Integration Testing with Testcontainers
+
+This project uses Testcontainers and PostgreSQL for robust integration testing.
+
+> [!NOTE]
+> On environments using Colima, Podman, or certain CI setups, the Ryuk container reaper 
+> (see: https://www.testcontainers.org/features/ryuk/) may have compatibility issues or can cause mysterious 
+> "connection refused" errors. Therefore, Ryuk is disabled in all test tasks by default.
+
+You do NOT need to manually export any environment variable — it's managed in the Gradle build:
+
+```groovy
+tasks.withType(Test).configureEach {
+    environment "TESTCONTAINERS_RYUK_DISABLED", "true"
+}
+```
+
+See the Ryuk documentation for more details: https://www.testcontainers.org/features/ryuk/
+
+By default, all integration tests (those using `@Tag("integration")`) are INCLUDED in the standard test run.
+
+No special configuration is needed in your Gradle build, just use:
+
+```groovy
+tasks.named('test') {
+    useJUnitPlatform()
+}
+```
+
+If you want to EXCLUDE integration tests (those with `@Tag("integration")`), you can run:
+
+```bash
+./gradlew test -Djunit.jupiter.tags='!integration'
+```
+
+Alternatively, to always exclude integration tests by default, add the following to your build.gradle:
+
+```groovy
+tasks.named('test') {
+    useJUnitPlatform {
+        excludeTags 'integration'
+    }
+}
+```
+
+To run only the integration tests, use:
+
+```bash
+./gradlew test -Djunit.jupiter.tags=integration
+```
+
+If you experience containers not being cleaned up, stop all:
+
+```bash
+docker rm -f $(docker ps -aq) # (You can remove leftover containers as needed)
+```
+
+---
+
 ## 📊 Observability
 
 The application is fully observable:

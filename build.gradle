@@ -60,9 +60,23 @@ dependencies {
 }
 
 tasks.named('test') {
-	useJUnitPlatform {
-		excludeTags 'integration'
-	}
+	useJUnitPlatform()
+}
+
+test {
+	maxParallelForks = 1
+}
+
+/**
+ * This project runs integration tests using Testcontainers with PostgreSQL.
+ * The process/connection "reaper" container (Ryuk) is explicitly **disabled** because of known compatibility issues
+ * when running on Colima, Podman, or certain CI environments. This avoids mysterious "connection refused" errors and
+ * ensures tests are reliable for everyone.
+ *
+ * We disable Ryuk globally for all test tasks.
+ */
+tasks.withType(Test).configureEach {
+	environment "TESTCONTAINERS_RYUK_DISABLED", "true"
 }
 
 jacocoTestReport {
