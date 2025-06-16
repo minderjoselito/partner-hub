@@ -28,6 +28,9 @@ public class User {
     @Column(length = 120)
     private String name;
 
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private Boolean enabled = true;
+
     @CreationTimestamp
     @Column(updatable = false)
     private Instant createdAt;
@@ -68,6 +71,14 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 
     public Instant getCreatedAt() {
