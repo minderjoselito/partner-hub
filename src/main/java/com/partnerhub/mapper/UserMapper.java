@@ -11,6 +11,7 @@ import org.mapstruct.Mappings;
 public interface UserMapper {
     @Mappings({
             @Mapping(target = "id", ignore = true),
+            @Mapping(target = "enabled", ignore = true),
             @Mapping(target = "createdAt", ignore = true),
             @Mapping(target = "updatedAt", ignore = true),
             @Mapping(target = "externalProjects", ignore = true)
