@@ -102,7 +102,7 @@ class ExternalProjectControllerTest {
                 .andExpect(jsonPath("$.timestamp").exists())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.error").value("Not Found"))
-                .andExpect(jsonPath("$.message").value("User not found"))
+                .andExpect(jsonPath("$.message").value("User with ID 999 not found"))
                 .andExpect(jsonPath("$.path").value("/api/users/999/projects"));
 
         verify(userService, times(1)).findById(userId);

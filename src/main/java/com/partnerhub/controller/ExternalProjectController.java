@@ -50,8 +50,8 @@ public class ExternalProjectController {
 
         User user = userService.findById(userId)
                 .orElseThrow(() -> {
-                    log.warn("User not found with ID: {}", userId);
-                    return new NotFoundException("User not found");
+                    log.warn("User with ID {} not found", userId);
+                    return new NotFoundException(String.format("User with ID %d not found", userId));
                 });
 
         ExternalProject project = externalProjectMapper.toEntity(requestDTO);

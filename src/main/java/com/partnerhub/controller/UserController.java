@@ -56,7 +56,7 @@ public class UserController {
                     return ResponseEntity.ok(userMapper.toResponse(user));
                 })
                 .orElseGet(() -> {
-                    log.warn("User not found with ID: {}", id);
+                    log.warn("User with ID {} not found", id);
                     return ResponseEntity.notFound().build();
                 });
     }

@@ -61,8 +61,8 @@ public class UserService {
     @Transactional
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
-            log.warn("User not found with ID: {}", id);
-            throw new NotFoundException("User with ID " + id + " not found");
+            log.warn("User with ID {} not found", id);
+            throw new NotFoundException(String.format("User with ID %d not found", id));
         }
 
         userRepository.deleteById(id);
@@ -81,8 +81,8 @@ public class UserService {
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> {
-                    log.warn("User not found with ID: {}", id);
-                    return new NotFoundException("User not found");
+                    log.warn("User with ID {} not found", id);
+                    return new NotFoundException(String.format("User with ID %d not found", id));
                 });
 
         if (!user.getEmail().equals(dto.getEmail())) {
