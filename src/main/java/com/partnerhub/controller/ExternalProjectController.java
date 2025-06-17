@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Endpoints for managing user's external projects.
+ */
 @RestController
 @RequestMapping("/api/users/{userId}/projects")
 public class ExternalProjectController {
