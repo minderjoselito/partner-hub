@@ -11,6 +11,8 @@ security:
 tags:
   - name: Users
     description: Endpoints for managing users
+  - name: Users Async
+    description: Endpoints for async user operations via Kafka and Redis
   - name: External Projects
     description: Endpoints for managing user's external projects
   - name: Thread
@@ -473,6 +475,93 @@ paths:
                 error: Conflict
                 message: Project with ID proj-001 already exists for user with ID 1
                 path: /api/users/1/projects
+  /api/users/async/kafka:
+    post:
+      tags:
+        - Users Async
+      summary: Create user asynchronously
+      description: Publishes a user creation request to Kafka. The status of this request can be checked with the requestId using the status endpoint.
+      operationId: createUserAsyncViaKafka
+      requestBody:
+        description: User creation information
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRequestDTO"
+            example:
+              email: john.doe@example.com
+              password: MySecurePass123
+              name: John Doe
+      responses:
+        "202":
+          description: User creation request accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: PENDING
+                  requestId:
+                    type: string
+                    example: "f1234567-8abc-4def-9eef-123456789abc"
+              example:
+                status: PENDING
+                requestId: f1234567-8abc-4def-9eef-123456789abc
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+              example:
+                timestamp: 2025-06-17T12:00:00.000+00:00
+                status: 400
+                error: Bad Request
+                message: Email must be valid
+                path: /api/users/async/kafka
+  /api/users/async/kafka/status/{requestId}:
+    get:
+      tags:
+        - Users Async
+      summary: Check status of async user creation
+      description: Retrieves the processing status (PENDING, SUCCESS, FAILED) of a user creation request by its requestId.
+      operationId: getAsyncUserCreationStatus
+      parameters:
+        - name: requestId
+          in: path
+          description: ID of the async user creation request to check
+          required: true
+          schema:
+            type: string
+            example: "f1234567-8abc-4def-9eef-123456789abc"
+      responses:
+        "200":
+          description: Status found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: SUCCESS
+              example:
+                status: SUCCESS
+        "404":
+          description: Request not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponseDTO"
+              example:
+                timestamp: 2025-06-17T12:05:00.000+00:00
+                status: 404
+                error: Not Found
+                message: No request with ID f1234567-8abc-4def-9eef-123456789abc found
+                path: /api/users/async/kafka/status/f1234567-8abc-4def-9eef-123456789abc
   /thread/name:
     get:
       tags:
