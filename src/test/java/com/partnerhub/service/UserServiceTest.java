@@ -7,6 +7,7 @@ import com.partnerhub.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,12 +19,14 @@ import static org.mockito.Mockito.*;
 class UserServiceTest {
 
     private UserRepository userRepository;
+    private PasswordEncoder passwordEncoder;
     private UserService userService;
 
     @BeforeEach
     void setUp() {
         userRepository = mock(UserRepository.class);
-        userService = new UserService(userRepository);
+        passwordEncoder = mock(PasswordEncoder.class);
+        userService = new UserService(userRepository, passwordEncoder);
     }
 
     // ===============================
@@ -39,7 +42,13 @@ class UserServiceTest {
         user.setName("Test");
 
         when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.empty());
-        when(userRepository.save(ArgumentMatchers.any(User.class))).thenReturn(user);
+        when(passwordEncoder.encode("plainpass")).thenReturn("hashed_pass");
+
+        when(userRepository.save(ArgumentMatchers.any(User.class))).thenAnswer(invocation -> {
+            User u = invocation.getArgument(0);
+            assertThat(u.getPassword()).isEqualTo("hashed_pass");
+            return u;
+        });
 
         // When
         User saved = userService.createUser(user);
@@ -48,7 +57,9 @@ class UserServiceTest {
         assertThat(saved).isNotNull();
         assertThat(saved.getEmail()).isEqualTo("a@b.com");
         assertThat(saved.getName()).isEqualTo("Test");
+        assertThat(saved.getPassword()).isEqualTo("hashed_pass"); // Novo assert!
         verify(userRepository).findByEmail(user.getEmail());
+        verify(passwordEncoder).encode("plainpass");
         verify(userRepository).save(user);
     }
 

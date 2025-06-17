@@ -40,6 +40,8 @@ dependencies {
 	implementation 'org.flywaydb:flyway-core'
 	implementation 'org.flywaydb:flyway-database-postgresql'
 
+	implementation 'org.springframework.security:spring-security-crypto'
+
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'

@@ -174,21 +174,20 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env 
 
 ## 🔐 Authentication
 
-All endpoints are protected with Basic Auth.
+All endpoints are protected with HTTP basic authentication.
 
-### Development Credentials
+- **Credentials (dev and first production deploy):**
+  - Username: `admin@admin.com`
+  - Password: `admin`
+- Credentials are managed via the database (`tb_user` table), not via `application.properties`.
 
-```
-username: admin
-password: admin
-```
+> [!WARNING]
+> The admin password is seeded as `admin` (see [V3__Seed_admin_user.sql](src/main/resources/db/migration/V3__Seed_admin_user.sql)).  
+> **Change the password immediately after first login in production!**
 
-### Production Credentials
-
-```
-Configure in `.env` file:
-ADMIN_USER=admin
-ADMIN_PASS=your_secure_password_here
+#### **Example request:**
+```bash
+curl -u admin@admin.com:admin http://localhost:8080/api/users
 ```
 
 ---
@@ -327,30 +326,35 @@ CREATE TABLE tb_user_external_project (
 
 ## 🗄️ Database Migrations
 
-Production-ready database versioning with Flyway:
+Production-ready database versioning is handled by [Flyway](https://flywaydb.org/):
 
-### Features
-- ✅ **Version control** for database schema
-- ✅ **Automated migrations** on application startup
-- ✅ **Rollback support** and migration history
-- ✅ **Environment separation** (DEV uses ddl-auto, PROD uses migrations)
+- **Schema is fully versioned:**  
+  Database tables and indexes are created and managed via migration scripts located in  
+  `src/main/resources/db/migration/`.
+- **Automatic migrations:**  
+  On every application startup, Flyway checks for new migration files and applies them as needed.
+- **Admin user seeding:**  
+  The initial admin user (`admin@admin.com` / `admin`) is automatically seeded into the database  
+  by [V3__Seed_admin_user.sql](src/main/resources/db/migration/V3__Seed_admin_user.sql).  
+  The password is stored securely as a BCrypt hash.
+- **Password management:**  
+  All user passwords are stored as BCrypt hashes.  
+  **Never insert plain-text passwords directly into the database.**
+
+> [!WARNING]  
+> The default admin password is `admin` after the first deploy.  
+> **Change it immediately in production!**
 
 ### Migration Files
 
 - [V1__Create_initial_tables.sql](src/main/resources/db/migration/V1__Create_initial_tables.sql)
 - [V2__Add_indexes.sql](src/main/resources/db/migration/V2__Add_indexes.sql)
-
-### Configuration
-
-- **Development**: Uses `spring.jpa.hibernate.ddl-auto=update` for convenience
-- **Production**: Uses Flyway migrations for controlled schema evolution
+- [V3__Seed_admin_user.sql](src/main/resources/db/migration/V3__Seed_admin_user.sql)
 
 ### Adding New Migrations
 
-#### Create new migration file
-
 ```bash
-touch src/main/resources/db/migration/V3__Update_user_columns.sql
+touch src/main/resources/db/migration/V4__Update_user_columns.sql
 ```
 
 Flyway will automatically apply on next startup.

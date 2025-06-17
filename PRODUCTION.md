@@ -45,14 +45,13 @@ docker-compose -f docker-compose.prod.yml --env-file .env up -d
 
 ## 📋 Environment Variables
 
-| Variable | Required | Description | Example |
-|----------|:--------:|-------------|---------|
-| `DB_USER` | ✅ | PostgreSQL username | `partnerhub_user` |
-| `DB_PASS` | ✅ | PostgreSQL password | `SecureP@ssw0rd123!` |
-| `DB_NAME` | ✅ | Database name | `partnerhub_prod` |
-| `ADMIN_PASS` | ✅ | Admin password | `AdminSecure456!` |
-| `CORS_ORIGINS` | ✅ | Allowed origins | `https://app.example.com` |
-| `GRAFANA_ADMIN_PASSWORD` | ✅ | Grafana password | `GrafanaAdmin789!` |
+| Variable                | Required | Description                 | Example                   |
+|-------------------------|:--------:|-----------------------------|---------------------------|
+| `DB_USER`               | ✅       | PostgreSQL username         | `partnerhub_user`         |
+| `DB_PASS`               | ✅       | PostgreSQL password         | `SecureP@ssw0rd123!`      |
+| `DB_NAME`               | ✅       | Database name               | `partnerhub_prod`         |
+| `CORS_ORIGINS`          | ✅       | Allowed origins             | `https://app.example.com` |
+| `GRAFANA_ADMIN_PASSWORD`| ✅       | Grafana admin password      | `GrafanaAdmin789!`        |
 
 ---
 
@@ -66,6 +65,10 @@ docker-compose -f docker-compose.prod.yml --env-file .env up -d
 - [ ] Swagger UI not exposed in production
 - [ ] Environment file not committed to git
 - [ ] Regular password rotation policy
+
+> [!WARNING]
+> **Admin user is created automatically on first deploy with username `admin@admin.com` and password `admin`.  
+> Change the password via API or directly in the database after your first production login.**
 
 ---
 
